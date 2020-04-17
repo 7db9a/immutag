@@ -102,11 +102,17 @@ Returns all the IPFS addresses corresponding to the address, not just the most-r
 
 Tar the directory then follow procedure as if it's a regular file.
 
-## Why ipfs' MFS won't do, I think.
+## Why ipfs' mfs won't do, I think.
 
 Why not just use ipfs' Mutable File System (mfs)? It's my understanding that nodes must fully sync to share mfs data. It's okay for single users operating a single node, but that won't work for our use case. Nonetheless, we want to use ipfs.
 
 If there's some way to use mfs among several nodes without fully syncing, or I'm misunderstanding something, I'd like to know.
+
+## ipfs pegs on bitcoin network?
+
+After incrementing the file versions some amount of times the ipfs addresses 'manifest' can be pegged to the bitcoin network. Users decide when to push, like on Github.
+
+A file store is updated and referenced by ipfs address on each file update. That file, or its data, then becomes the latest ipfs 'peg'.
 
 ## Bitcoin SV libraries
 
