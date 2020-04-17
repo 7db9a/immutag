@@ -48,13 +48,13 @@ The following applications and technologies (others can be dropped in their plac
 
 * bitcoin-sv
 
-* recutils
+* sqlite
 
 * tmsu
 
 Each bitcoin address corresponds to a file. The first external address is the immutable address of a file. Other versions of the file are external addresses 1 and above.
 
-Locally, files are mapped to addresses in key-value store, perhaps using recutils' library:
+Locally, files are mapped to addresses in an indexed store, such as an sql database.
 
 The key is first external address, which is immutable. The values can change and are the following:
 
@@ -126,11 +126,45 @@ Looks good. Here's a really useful doc [link](https://docs.moneybutton.com/docs/
 
 It doesn't appear to be stable, yet
 
-## BIP 32 - bitcoin hierarchical deterministic wallet
+## Immutag filesystem
+
+The filesystem may be something like below, but not in practice.
+
+The file-system wallet is like "root" on unix-like operating systems. There would be few file-system wallets to many file-version wallets.
+
+These database data can be 'pegged' to the bitcoin network. See [here](#ipfs-pegs-on-bitcoin-network).
+
+**BIP-32 file-system HD wallet database**
+```
+BITCOIN-ADDR # First external address.
+
+# BIP-44 bitcoin addresses can be derived from the master private key.
+# 'PRIVKEY' values below are for individual BIP-32 HD file-version wallets.
+# Below are 3 HD wallets representing 3 files.
+
+0: BITCOIN-ADDR, XPRIV
+1: BITCOIN-ADDR, XPRIV
+2: BITCOIN-ADDR, XPRIV
+```
+
+**BIP-32 file-version HD wallet database**
+```
+BITCOIN-ADDR # First external address.
+
+# Bitcoin addresses can be derived from "wallets" private key and are the first external addresses.
+# Each ipfs address corresponds to specific file version.
+# Below are 3 file versions, representing a single mutable file.
+
+0: BITCOIN-ADDR, IPFS-ADDR
+1: BITCOIN-ADDR, IPFS-ADDR
+2: BITCOIN-ADDR, IPFS-ADDR
+```
+
+### BIP 32 - bitcoin hierarchical deterministic wallet
 
 https://github.com/bitcoin/bips/blob/master/bip-0032.mediawiki
 
-## BIP 44 - bitcoin account hierarchy
+### BIP 44 - bitcoin account hierarchy
 
 ```
 coin    account chain       address path
