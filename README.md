@@ -24,6 +24,7 @@ What provides an immutable address space, that also can 'immutably', or determin
 git clone https://github.com/7db9a/immutag
 cd immutag
 docker build immutag:0.1.0 .
+docker volume create --name=immutag-cargo-data-volume
 ```
 
 Install bsv. A bit awkward, but bear with for now.
