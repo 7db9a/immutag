@@ -8,7 +8,7 @@ cargo-build() {
     docker exec \
     -it \
     immutag_coding_1 \
-    /root/.cargo/bin/cargo build --release
+    cargo build --release
 }
 
 build() {
@@ -19,7 +19,7 @@ run-rust-test() {
     docker exec \
     -it \
     immutag_coding_1 \
-    /root/.cargo/bin/cargo test -- --test-threads=1 --nocapture
+    cargo test -- --test-threads=1 --nocapture
 }
 
 run-basic-bsv-test() {

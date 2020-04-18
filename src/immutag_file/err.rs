@@ -1,6 +1,3 @@
-extern crate rustbreak;
-extern crate toml_query;
-pub use rustbreak::BreakError;
 pub use toml_edit::TomlError;
 
 #[derive(Debug)]

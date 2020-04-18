@@ -6,6 +6,7 @@ extern crate toml_edit;
 use toml_edit::{value, Document};
 
 pub mod err;
+pub mod common;
 use err::Error;
 pub use err::{ErrorKind, MetadataFileError};
 
@@ -485,7 +486,7 @@ version = "0.0.1"
 #[cfg(test)]
 mod integration {
     use super::*;
-    use crate::common::Fixture;
+    use common::Fixture;
 
     pub fn setup_test<T: AsRef<str>>(
         path: T,
