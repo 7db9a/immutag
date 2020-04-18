@@ -1,20 +1,13 @@
 #!/bin/bash
 
-create-primary-container() {
-    docker create \
-    -it \ 
-    --name immutag \
-    -v $PWD:/immutag immutag:0.1.0
-}
-
-start-primary-container() {
-    docker start immutag
+start-docker() {
+    docker-compose up
 }
 
 cargo-build() {
     docker exec \
     -it \
-    immutag \
+    immutag_coding_1 \
     /root/.cargo/bin/cargo build --release
 }
 
@@ -25,14 +18,14 @@ build() {
 run-rust-test() {
     docker exec \
     -it \
-    docker_nodeosd_1 \
+    immutag_coding_1 \
     /root/.cargo/bin/cargo test -- --test-threads=1 --nocapture
 }
 
 run-basic-bsv-test() {
     docker exec \
     -it \
-    docker_nodeosd_1 \
+    immutag_coding_1 \
     npm test --prefix testing tests/bsv/basic.js
 }
 
@@ -69,5 +62,5 @@ fi
 
 if [ "$1" == "test" ]; then
     echo "test"
-    run_test $2
+    run-test $2
 fi
