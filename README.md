@@ -126,6 +126,14 @@ Looks good. Here's a really useful doc [link](https://docs.moneybutton.com/docs/
 
 It doesn't appear to be stable, yet
 
+## sqlite
+
+[rustqlite](https://crates.io/crates/rusqlite)
+
+## config writer
+
+[toml-edit](https://crates.io/crates/toml_edit)
+
 ## Immutag filesystem
 
 The filesystem may be something like below, but not in practice.
