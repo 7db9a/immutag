@@ -2,19 +2,69 @@
 
 Exploring a 'mutable' and taggable content-addressable file system. This is under initial development.
 
-## Overview
+There are several libraries for tagging files. A couple that standout are [TMSU](https://github.com/oniony/TMSU), [squaretag](https://github.com/mdom/squaretag), and [tagspaces](https://github.com/tagspaces/tagspaces). They makes it easy to find files. They are useful for keeping track of content-addressable files, such as with [ipfs](https://github.com/ipfs).
 
-There are several libraries for tagging files. A couple that standout are [TMSU](https://github.com/oniony/TMSU), [squaretag](https://github.com/mdom/squaretag), and [tagspaces](https://github.com/tagspaces/tagspaces). They makes it easy to find files. And it works great for content-addressable files, such as with [ipfs](https://github.com/ipfs).
+However, if the 'file' is updated, how can it remain content-addressable and taggable? IPFS' Mutable File System is meant only for a single node, if I'm not mistaken.
 
-However, if the 'file' is updated, how can it remain content-addressable and taggable? We want:
+We want:
 
-* No syncing between nodes that access the same 'mutable' files (rules out ipfs' mfs).
+* No syncing between nodes that access the same 'mutable' files.
 
 * Can be layered on top of any content-addressable file-system or file tagging solution.
 
-* Allows for collaboration.
+* Collaborative.
 
 What provides an immutable address space, that also can 'immutably', or determinstically, mutate? Bitcoin. Well, not just bitcoin, but hierchical deterministic cryptographic keys. And bitcoin, for our use case, works locally and on network.
+
+## How it works - possibly
+
+The following applications and technologies may prove useful:
+
+* ipfs - immutable content-addresable files
+
+* bitcoin-sv - mutable file hierarchy and ledger
+
+* git - collaborative file editing
+
+* tmsu - local virtual filesytem with tag-based view
+
+Each file is an address in a bitcoin HD wallet. The file is a directory on the device. A git directory is named after the file's bitcoin address.
+
+```
+immutag
+├── 1LrTstQYNZj8wCvBgipJqL9zghsofpsHEG
+│   ├── .git
+│   ├── immutag-store
+├── 1JvFXyZMC31ShnD8PSKgN1HKQ2kGQLVpCt
+│   ├── .git
+│   ├── immutag-store
+
+```
+$ cat 1LrTstQYNZj8wCvBgipJqL9zghsofpsHEG/immmutag-store
+
+```
+# IPFS-ADDR: TAGS, METADATA
+
+QmeH81SYnASj5s91gQ22PdkYMgw45FD6kgrmBEU74Vp439: ["letter", "son"] , ""
+QmQPRexanRL6pnSPAzC696if49BviGaLNKvC3gp3ApPQmN: ["letter", "son", "advice" ] , "How to be good and just."
+```
+Each ipfs address corresponds to specific file version. Above, there are 2 file versions, representing a single mutable file. The above is for conceptual purposes and the file may look a lot different.
+
+### File branching
+
+If a file version is considered important enough, a new branch can cheaply be created. A new hardened child bitcoin address is given to it. The forked file version is indicated by an opreturn on the original file. The opreturn has the forked file version's ipfs hash and the bitcoin address of the new branch.
+
+### Bitcoin network
+
+The user can push to bitcoin, which opreturns the latest ipfs addr of the file store.
+
+### Private network
+
+Collaborators can push and pull to the git repo. A user can reconstruct the git repo from the store entries.
+
+### File discovery services
+
+Users shouldn't be forced find immutags on bitcoin. Service providers should continuosly pull new immutags from the bitcoin network.  They can keep everything readily available in a database so that users can easily make queries.
 
 ## Development
 
@@ -40,30 +90,6 @@ Entry point.
 `docker run -it --name immutag -v $PWD:/immutag immutag:0.1.0`
 
 Playing with [moneybutton's bsv library](#moneybuttons-bsv) at the moment.
-
-## How it may work, more or less.
-
-The following applications and technologies (others can be dropped in their place) may prove useful:
-
-* ipfs
-
-* bitcoin-sv
-
-* sqlite
-
-* tmsu
-
-Each bitcoin address corresponds to a file. The first external address is the immutable address of a file. Other versions of the file are external addresses 1 and above.
-
-Locally, files are mapped to addresses in an indexed store, such as an sql database.
-
-The key is first external address, which is immutable. The values can change and are the following:
-
-* latest external address
-
-* ipfs address of the latest file version
-
-Jump to [here](#hd-wallet---bip-44) for more details.
 
 ## Workflow, sort of.
 
@@ -115,59 +141,35 @@ After incrementing the file versions some amount of times the ipfs addresses 'ma
 
 A file store is updated and referenced by ipfs address on each file update. That file, or its data, then becomes the latest ipfs 'peg'.
 
-## Bitcoin SV libraries
+That file store is version controlled with git.
 
-Bitcoin SV has cheap tx fees and is commited to not breaking APIs or systems reliant on the network. The stakeholders are also friendly to users storing metadata on-chain, unlike Bitcoin Core. However, it doesn't have as wide a user-base as Bitcoin Core at the moment.
+## Useful libraries
 
-### [moneybutton's bsv](https://github.com/moneybutton/bsv)
+### BSV
 
-Looks good. Here's a really useful doc [link](https://docs.moneybutton.com/docs/bsv-hd-private-key.html).
+#### [rust-sv](https://github.com/brentongunning/rust-sv)
 
-### [keyring](https://github.com/BitbossIO/keyring)
+#### [rust-bitcoin](https://github.com/rust-bitcoin/rust-bitcoin)
 
-It doesn't appear to be stable, yet
+#### [nodejs - moneybutton's bsv](https://github.com/moneybutton/bsv)
 
-## sqlite
+For our purposes, some very relevant [documentation](https://docs.moneybutton.com/docs/bsv-hd-private-key.html).
+
+### SQLITE
 
 [rustqlite](https://crates.io/crates/rusqlite)
 
-## config writer
+For a file-discover service prototype.
+
+### Config file
 
 [toml-edit](https://crates.io/crates/toml_edit)
 
-## Immutag filesystem
+## Bitcoin HD filesystem
 
-The filesystem may be something like below, but not in practice.
-
-The file-system wallet is like "root" on unix-like operating systems. There would be few file-system wallets to many file-version wallets.
+The file-system wallet is like "root" on unix-like operating systems. Each file is associated with a bitcoin address.
 
 These database data can be 'pegged' to the bitcoin network. See [here](#ipfs-pegs-on-bitcoin-network).
-
-**BIP-32 file-system HD wallet database**
-```
-BITCOIN-ADDR # First external address.
-
-# BIP-44 bitcoin addresses can be derived from the master private key.
-# 'PRIVKEY' values below are for individual BIP-32 HD file-version wallets.
-# Below are 3 HD wallets representing 3 files.
-
-0: BITCOIN-ADDR, XPRIV
-1: BITCOIN-ADDR, XPRIV
-2: BITCOIN-ADDR, XPRIV
-```
-
-**BIP-32 file-version HD wallet database**
-```
-BITCOIN-ADDR # First external address.
-
-# Bitcoin addresses can be derived from "wallets" private key and are the first external addresses.
-# Each ipfs address corresponds to specific file version.
-# Below are 3 file versions, representing a single mutable file.
-
-0: BITCOIN-ADDR, IPFS-ADDR
-1: BITCOIN-ADDR, IPFS-ADDR
-2: BITCOIN-ADDR, IPFS-ADDR
-```
 
 ### BIP 32 - bitcoin hierarchical deterministic wallet
 
