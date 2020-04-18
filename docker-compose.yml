@@ -1,0 +1,13 @@
+version: "3"
+
+services:
+  coding:
+    image: immutag:latest
+    volumes:
+      - ./:/immutag
+      - immutag-cargo-data-volume:/usr/local/cargo
+    tty: true
+
+volumes:
+ immutag-cargo-data-volume:
+   external: true
