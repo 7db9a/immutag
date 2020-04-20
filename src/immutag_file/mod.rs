@@ -22,15 +22,11 @@ pub enum ImmutagFileState {
 }
 
 /// Creates a Immutag file with basic info.
-pub fn init<T: AsRef<str>>(path: T, version: T, name: T, author: T) {
+pub fn init<T: AsRef<str>>(path: T, version: T) {
     let toml = format!(
         r#"['immutag']
-version = "{}"
-name = "{}"
-author = "{}""#,
+version = "{}""#,
         version.as_ref(),
-        name.as_ref(),
-        author.as_ref()
     );
 
     let doc = toml.parse::<Document>().expect("invalid doc");
@@ -59,18 +55,10 @@ pub fn write<T: AsRef<str>>(toml_doc: Document, path: T) -> Result<(), ImmutagFi
 pub fn is_valid(doc: &Document) -> ImmutagFileState {
     let mut valid: ImmutagFileState;
     let version = entry_exists(&doc, "immutag", Some("version"));
-    let name = entry_exists(&doc, "immutag", Some("name"));
-    let author = entry_exists(&doc, "immutag", Some("author"));
 
     if version {
         valid = ImmutagFileState::Valid;
     } else {
-        valid = ImmutagFileState::Invalid;
-    }
-    if !name {
-        valid = ImmutagFileState::Invalid;
-    }
-    if !author {
         valid = ImmutagFileState::Invalid;
     }
 
@@ -110,7 +98,7 @@ pub fn immutag<T: AsRef<str>>(
 /// `path` paramaters is the path to the Immutag file.
 pub fn exists<T: AsRef<str>>(path: T, name: T) -> bool {
     let doc = open(path.as_ref()).unwrap();
-    immutag(&doc, Some(name.as_ref()), "immutag").is_ok()
+    immutag(&doc, Some(name.as_ref()), "xpriv").is_ok()
 }
 
 /// See if an entry exists, with an optional nested key.
@@ -181,11 +169,11 @@ fn insert_entry_same_doc<T: AsRef<str>>(
         let mut doc = doc.clone();
         if !entry_exists(&doc, _file_name.as_ref(), None) {
             let toml = doc.to_string();
-            if key.as_ref() == "immutag" {
+            if key.as_ref() == "xpriv" {
                 let toml_add = format!(
                     r#"
 ['{}']
-immutag = "{}""#,
+xpriv = "{}""#,
                     _file_name.as_ref(),
                     immutag.as_ref()
                 );
@@ -258,7 +246,7 @@ pub fn add_entry<T: AsRef<str>>(
 pub fn update_entry<T: AsRef<str>>(
     doc: &Document,
     file_name: Option<T>,
-    name: T,
+    key: T,
     immutag: T,
 ) -> Result<Document, ImmutagFileError> {
     let file_state = is_valid(&doc);
@@ -272,7 +260,7 @@ pub fn update_entry<T: AsRef<str>>(
             insert_entry(
                 &doc,
                 Some(file_name.as_ref()),
-                name.as_ref(),
+                key.as_ref(),
                 immutag.as_ref(),
             )
         } else {
@@ -283,9 +271,9 @@ pub fn update_entry<T: AsRef<str>>(
             Err(ImmutagFileError::from(err))
         }
     } else {
-        let entry_exists = entry_exists(&doc, "immutag", Some(name.as_ref()));
+        let entry_exists = entry_exists(&doc, "immutag", Some(immutag.as_ref()));
         if entry_exists {
-            insert_entry(&doc, Some("immutag"), name.as_ref(), immutag.as_ref())
+            insert_entry(&doc, Some("immutag"), key.as_ref(), immutag.as_ref())
         } else {
             let err = Error::new(
                 "file entry doesn't exist in immutag file",
@@ -385,19 +373,18 @@ c = { d = "hello" }
     #[test]
     fn toml_edit_set_file_realistic() {
         let toml = r#"
-['src/lib.rs']
-immutag = "The libraries entry point."
+['1LrTstQYNZj8wCvBgipJqL9zghsofpsHEG']
+xpriv = "XPRIV"
         "#;
         let mut doc = toml.parse::<Document>().expect("invalid doc");
         assert_eq!(doc.to_string(), toml);
-        doc["src/lib.rs"]["version"] = value("0.0.1");
+        doc["1LrTstQYNZj8wCvBgipJqL9zghsofpsHEG"]["xpriv"] = value("XPRIV");
         // Commenting out won't fail test.
-        doc["src/lib.rs"].as_inline_table_mut().map(|t| t.fmt());
+        doc["1LrTstQYNZj8wCvBgipJqL9zghsofpsHEG"].as_inline_table_mut().map(|t| t.fmt());
 
         let expected = r#"
-['src/lib.rs']
-immutag = "The libraries entry point."
-version = "0.0.1"
+['1LrTstQYNZj8wCvBgipJqL9zghsofpsHEG']
+xpriv = "XPRIV"
         "#;
         assert_eq!(doc.to_string(), expected);
     }
@@ -405,12 +392,12 @@ version = "0.0.1"
     #[test]
     fn toml_edit_get_nested_item() {
         let toml = r#"
-['src/lib.rs']
-immutag = "The libraries entry point."
+['1LrTstQYNZj8wCvBgipJqL9zghsofpsHEG']
+xpriv = "XPRIV"
         "#;
         let doc = toml.parse::<Document>().expect("invalid doc");
-        let immutag = doc["src/lib.rs"]["immutag"].as_str();
-        let expected_immutag = "The libraries entry point.";
+        let immutag = doc["1LrTstQYNZj8wCvBgipJqL9zghsofpsHEG"]["xpriv"].as_str();
+        let expected_immutag = "XPRIV";
 
         assert_eq!(immutag.unwrap(), expected_immutag)
     }
@@ -418,35 +405,32 @@ immutag = "The libraries entry point."
     #[test]
     fn toml_edit_set_get_nested_realistic() {
         let toml = r#"
-['src/lib.rs']
-immutag = "The libraries entry point."
+['1LrTstQYNZj8wCvBgipJqL9zghsofpsHEG']
+xpriv = "XPRIV"
         "#;
         let mut doc = toml.parse::<Document>().expect("invalid doc");
         assert_eq!(doc.to_string(), toml);
-        doc["src/lib.rs"]["version"] = value("0.0.1");
+        doc["1LrTstQYNZj8wCvBgipJqL9zghsofpsHEG"]["xpriv"] = value("XPRIV");
         // Commenting out won't fail test.
-        doc["src/lib.rs"].as_inline_table_mut().map(|t| t.fmt());
+        doc["1LrTstQYNZj8wCvBgipJqL9zghsofpsHEG"].as_inline_table_mut().map(|t| t.fmt());
 
         let expected = r#"
-['src/lib.rs']
-immutag = "The libraries entry point."
-version = "0.0.1"
+['1LrTstQYNZj8wCvBgipJqL9zghsofpsHEG']
+xpriv = "XPRIV"
         "#;
 
         assert_eq!(doc.to_string(), expected);
         assert_eq!(
-            doc["src/lib.rs"]["immutag"].as_str().unwrap(),
-            "The libraries entry point."
+            doc["1LrTstQYNZj8wCvBgipJqL9zghsofpsHEG"]["xpriv"].as_str().unwrap(),
+            "XPRIV"
         );
-        assert_eq!(doc["src/lib.rs"]["version"].as_str().unwrap(), "0.0.1")
+        assert_eq!(doc["1LrTstQYNZj8wCvBgipJqL9zghsofpsHEG"]["xpriv"].as_str().unwrap(), "XPRIV")
     }
 
     #[test]
     fn toml_append() {
         let immutag_fields = r#"['immutag']
-version = "0.1.0"
-name = "NAME"
-author = "AUTHOR""#;
+version = "0.1.0""#;
 
         let toml = immutag_fields
             .parse::<Document>()
@@ -454,18 +438,14 @@ author = "AUTHOR""#;
         let toml_string = toml.to_string();
 
         let immutag_fields = r#"
-['src/lib.rs']
-immutag = "The libraries entry point."
-version = "0.0.1""#;
+['1LrTstQYNZj8wCvBgipJqL9zghsofpsHEG']
+xpriv = "XPRIV""#;
 
         let expected = r#"['immutag']
 version = "0.1.0"
-name = "NAME"
-author = "AUTHOR"
 
-['src/lib.rs']
-immutag = "The libraries entry point."
-version = "0.0.1"
+['1LrTstQYNZj8wCvBgipJqL9zghsofpsHEG']
+xpriv = "XPRIV"
 "#;
 
         let new_toml_string = toml_string + immutag_fields;
@@ -482,9 +462,7 @@ mod integration {
 
     pub fn setup_test<T: AsRef<str>>(
         path: T,
-        version: T,
-        name: T,
-        author: T,
+        version: T
     ) -> Fixture {
         let fixture = Fixture::new()
             .add_dirpath(path.as_ref().to_string())
@@ -493,8 +471,6 @@ mod integration {
         init(
             path.as_ref().to_string() + "/Immutag",
             version.as_ref().to_string(),
-            name.as_ref().to_string(),
-            author.as_ref().to_string(),
         );
 
         fixture
@@ -506,13 +482,13 @@ mod integration {
         let doc = open(immutag_path.as_ref()).unwrap();
         let doc = add_entry(
             &doc,
-            Some("src/lib.rs"),
-            "immutag",
-            "Entry point to the library.",
+            Some("1LrTstQYNZj8wCvBgipJqL9zghsofpsHEG"),
+            "xpriv",
+            "XPRIV",
         )
         .unwrap();
         write(doc.clone(), immutag_path.as_ref()).expect("failed to write toml to disk");
-        let immutag_res = immutag(&doc, Some("src/lib.rs"), "immutag");
+        let immutag_res = immutag(&doc, Some("1LrTstQYNZj8wCvBgipJqL9zghsofpsHEG"), "xpriv");
 
         (doc, immutag_res)
     }
@@ -521,14 +497,12 @@ mod integration {
     fn immutagfile_init() {
         let path = ".immutag/.immutag_tests";
         let gpath = ".immutag/.immutag_tests/Immutag";
-        let mut fixture = setup_test(path, "0.1.0", "NAME", "AUTHOR");
+        let mut fixture = setup_test(path, "0.1.0");
         let doc = open(gpath).unwrap();
         let is_valid = is_valid(&doc);
         let doc = open(gpath).unwrap();
         let expected = r#"['immutag']
 version = "0.1.0"
-name = "NAME"
-author = "AUTHOR"
 "#;
         fixture.teardown(true);
         assert_eq!(is_valid, ImmutagFileState::Valid);
@@ -539,45 +513,54 @@ author = "AUTHOR"
     fn immutagfile_add_entry() {
         let path = ".immutag/.immutag_tests";
         let gpath = ".immutag/.immutag_tests/Immutag";
-        let mut fixture = setup_test(path, "0.1.0", "NAME", "AUTHOR");
+        let mut fixture = setup_test(path, "0.1.0");
         let doc = open(gpath).unwrap();
         let doc = add_entry(
             &doc,
-            Some("src/lib.rs"),
-            "immutag",
-            "Entry point to the library.",
+            Some("1LrTstQYNZj8wCvBgipJqL9zghsofpsHEG"),
+            "xpriv",
+            "XPRIV",
         )
         .unwrap();
         write(doc.clone(), gpath).expect("failed to write toml to disk");
-        let immutag_res = immutag(&doc, Some("src/lib.rs"), "immutag").unwrap();
+        let immutag_res = immutag(&doc, Some("1LrTstQYNZj8wCvBgipJqL9zghsofpsHEG"), "xpriv").unwrap();
         fixture.teardown(true);
-        assert_eq!(immutag_res, "Entry point to the library.");
+        assert_eq!(immutag_res, "XPRIV");
     }
 
     #[test]
-    fn immutagfile_add_dir_entry() {
+    fn immutagfile_error_add_entry() {
         let path = ".immutag/.immutag_tests";
         let gpath = ".immutag/.immutag_tests/Immutag";
-        let mut fixture = setup_test(path, "0.1.0", "NAME", "AUTHOR");
-        let doc = open(gpath).unwrap();
-        let doc = add_entry(&doc, Some("src/"), "immutag", "The source code.").unwrap();
-        write(doc.clone(), gpath).expect("failed to write toml to disk");
-        let immutag_res = immutag(&doc, Some("src/"), "immutag").unwrap();
+        let mut fixture = setup_test(path, "0.1.0");
+        let (doc, immutag) = setup_add(gpath);
+
+        // Focus of test.
+        let result = add_entry(
+            &doc,
+            Some("1LrTstQYNZj8wCvBgipJqL9zghsofpsHEG"),
+            "xpriv",
+            "XPRIV_OTHER",
+        );
+
         fixture.teardown(true);
-        assert_eq!(immutag_res, "The source code.");
+
+        assert_eq!(immutag.unwrap(), "XPRIV");
+        assert!(result.is_err());
     }
+
 
     #[test]
     fn immutagfile_error_update_entry() {
         let path = ".immutag/.immutag_tests";
         let gpath = ".immutag/.immutag_tests/Immutag";
-        let mut fixture = setup_test(path, "0.1.0", "NAME", "AUTHOR");
+        let mut fixture = setup_test(path, "0.1.0");
         let doc = open(gpath).unwrap();
         let result = update_entry(
             &doc,
-            Some("src/lib.rs"),
-            "immutag",
-            "Entry point to the library.",
+            Some("1LrTstQYNZj8wCvBgipJqL9zghsofpsHEG"),
+            "xpriv",
+            "XPRIV",
         );
 
         fixture.teardown(true);
@@ -590,7 +573,7 @@ author = "AUTHOR"
     fn format_immutagfile_file_add_entry() {
         let path = ".immutag/.immutag_tests";
         let gpath = ".immutag/.immutag_tests/Immutag";
-        let mut fixture = setup_test(path, "0.1.0", "NAME", "AUTHOR");
+        let mut fixture = setup_test(path, "0.1.0");
         let (_, _) = setup_add(gpath);
 
         // Focus of test.
@@ -599,14 +582,12 @@ author = "AUTHOR"
         let doc = open(gpath).unwrap();
 
         //let mut doc = toml_string.parse::<Document>().expect("failed to get toml doc");
-        //doc["src/lib.rs"].as_inline_table_mut().map(|t| t.fmt());
+        //doc["1LrTstQYNZj8wCvBgipJqL9zghsofpsHEG"].as_inline_table_mut().map(|t| t.fmt());
         let expected = r#"['immutag']
 version = "0.1.0"
-name = "NAME"
-author = "AUTHOR"
 
-['src/lib.rs']
-immutag = "Entry point to the library."
+['1LrTstQYNZj8wCvBgipJqL9zghsofpsHEG']
+xpriv = "XPRIV"
 "#;
 
         fixture.teardown(true);
@@ -619,16 +600,16 @@ immutag = "Entry point to the library."
     fn immutagfile_entry_exists() {
         let path = ".immutag/.immutag_tests";
         let gpath = ".immutag/.immutag_tests/Immutag";
-        let mut fixture = setup_test(path, "0.1.0", "NAME", "AUTHOR");
+        let mut fixture = setup_test(path, "0.1.0");
         let (doc, _) = setup_add(gpath);
 
-        assert_eq!(entry_exists(&doc, "src/lib.rs", None), true);
+        assert_eq!(entry_exists(&doc, "1LrTstQYNZj8wCvBgipJqL9zghsofpsHEG", None), true);
 
-        assert_eq!(exists(gpath, "src/lib.rs"), true);
+        assert_eq!(exists(gpath, "1LrTstQYNZj8wCvBgipJqL9zghsofpsHEG"), true);
 
-        assert_eq!(entry_exists(&doc, "NOT_REAL.md", None), false);
+        assert_eq!(entry_exists(&doc, "NOT_REAL_BITCON_ADD_A", None), false);
 
-        assert_eq!(exists(gpath, "NOT_REAL.md"), false);
+        assert_eq!(exists(gpath, "NOT_REAL_BITCOIN_ADD_B"), false);
 
         fixture.teardown(true);
     }
@@ -637,224 +618,90 @@ immutag = "Entry point to the library."
     fn immutagfile_update_entry() {
         let path = ".immutag/.immutag_tests";
         let gpath = ".immutag/.immutag_tests/Immutag";
-        let mut fixture = setup_test(path, "0.1.0", "NAME", "AUTHOR");
+        let mut fixture = setup_test(path, "0.1.0");
         let (doc, immutag_res) = setup_add(gpath);
         // Focus of test.
         let doc = update_entry(
             &doc,
-            Some("src/lib.rs"),
-            "immutag",
-            "Like main.rs, but for libraries.",
+            Some("1LrTstQYNZj8wCvBgipJqL9zghsofpsHEG"),
+            "xpriv",
+            "SHOULDNT DO THIS",
         )
         .unwrap();
         write(doc.clone(), gpath).expect("failed to write toml to disk");
-        let updated_immutag_res = immutag(&doc, Some("src/lib.rs"), "immutag").unwrap();
+        let updated_immutag_res = immutag(&doc, Some("1LrTstQYNZj8wCvBgipJqL9zghsofpsHEG"), "xpriv").unwrap();
 
         fixture.teardown(true);
 
-        assert_eq!(immutag_res.unwrap(), "Entry point to the library.");
-        assert_eq!(updated_immutag_res, "Like main.rs, but for libraries.");
-    }
-
-    #[test]
-    fn immutagfile_error_add_entry() {
-        let path = ".immutag/.immutag_tests";
-        let gpath = ".immutag/.immutag_tests/Immutag";
-        let mut fixture = setup_test(path, "0.1.0", "NAME", "AUTHOR");
-        let (doc, immutag) = setup_add(gpath);
-
-        // Focus of test.
-        let result = add_entry(
-            &doc,
-            Some("src/lib.rs"),
-            "immutag",
-            "Like main.rs, but for libraries.",
-        );
-
-        fixture.teardown(true);
-
-        assert_eq!(immutag.unwrap(), "Entry point to the library.");
-        assert!(result.is_err());
+        assert_eq!(immutag_res.unwrap(), "XPRIV");
+        assert_eq!(updated_immutag_res, "SHOULDNT DO THIS");
     }
 
     fn helper_immutagfile_delete_entry_thorough_check<T: AsRef<str>>(path_to_dir: T) {
         let path = path_to_dir;
         let gpath = path.as_ref().to_string() + "/Immutag";
-        let _fixture = setup_test(path.as_ref(), "0.1.0", "NAME", "AUTHOR");
+        let _fixture = setup_test(path.as_ref(), "0.1.0") ;
 
         let (doc, _) = setup_add(gpath.as_str());
 
-        let lib_exists = entry_exists(&doc, "src/lib.rs", None);
+        let lib_exists = entry_exists(&doc, "1LrTstQYNZj8wCvBgipJqL9zghsofpsHEG", None);
 
-        let doc = add_entry(&doc, Some("README.md"), "immutag", "The README.").unwrap();
+        let doc = add_entry(&doc, Some("1JvFXyZMC31ShnD8PSKgN1HKQ2kGQLVpCt"), "xpriv", "XPRIV").unwrap();
 
         write(doc.clone(), gpath.as_str()).expect("failed to write toml to disk");
 
-        let new_doc = delete_entry(doc, "README.md").unwrap();
+        let new_doc = delete_entry(doc, "1JvFXyZMC31ShnD8PSKgN1HKQ2kGQLVpCt").unwrap();
         write(new_doc.clone(), gpath).expect("failed to write toml to disk");
 
         let expected = r#"['immutag']
 version = "0.1.0"
-name = "NAME"
-author = "AUTHOR"
 
-['src/lib.rs']
-immutag = "Entry point to the library."
+['1LrTstQYNZj8wCvBgipJqL9zghsofpsHEG']
+xpriv = "XPRIV"
 "#;
 
         assert_eq!(lib_exists, true);
         assert_eq!(new_doc.to_string(), expected)
     }
 
-    #[test]
-    fn immutagfile_delete_entry_thorough_assert() {
-        let path = ".immutag/.immutag_tests";
-        helper_immutagfile_delete_entry_thorough_check(path);
+     #[test]
+     fn immutagfile_delete_entry_thorough_assert() {
+         let path = ".immutag/.immutag_tests";
+         helper_immutagfile_delete_entry_thorough_check(path);
 
-        Fixture::new().add_dirpath(path.to_string()).teardown(true);
-    }
+         Fixture::new().add_dirpath(path.to_string()).teardown(true);
+     }
 
-    #[test]
-    fn immutagfile_complicated() {
-        let path = ".immutag/.immutag_tests";
-        helper_immutagfile_delete_entry_thorough_check(path);
-
-        let doc = open(path.to_string() + "/Immutag").unwrap();
-
-        let modified_doc = {
-            let update_version =
-                || -> Document { update_entry(&doc, None, "version", "0.2.0").unwrap() };
-
-            let update_author = || -> Document {
-                update_entry(&update_version(), None, "author", "CHANGED_AUTHOR").unwrap()
-            };
-
-            let add_main = || -> Document {
-                add_entry(
-                    &update_author(),
-                    Some("src/main.rs"),
-                    "immutag",
-                    "Like lib.rs, but for apps.",
-                )
-                .unwrap()
-            };
-
-            add_entry(
-                &add_main(),
-                Some(".gitignore"),
-                "immutag",
-                "Tells git which files to ignore.",
-            )
-            .unwrap()
-        };
-
-        write(modified_doc, path.to_string() + "/Immutag").expect("failed to write toml to disk");
-
-        let expected = r#"['immutag']
-version = "0.2.0"
-name = "NAME"
-author = "CHANGED_AUTHOR"
-
-['src/lib.rs']
-immutag = "Entry point to the library."
-
-['src/main.rs']
-immutag = "Like lib.rs, but for apps."
-
-['.gitignore']
-immutag = "Tells git which files to ignore."
-"#;
-
-        let doc = open(path.to_string() + "/Immutag").unwrap();
-
-        Fixture::new().add_dirpath(path.to_string()).teardown(true);
-
-        assert_eq!(doc.to_string(), expected)
-    }
 
     #[test]
     fn immutagfile_delete_file_entry() {
         let path = ".immutag/.immutag_tests";
         let gpath = ".immutag/.immutag_tests/Immutag";
-        let mut fixture = setup_test(path, "0.1.0", "NAME", "AUTHOR");
+        let mut fixture = setup_test(path, "0.1.0");
         let doc = open(gpath).unwrap();
         let doc = add_entry(
             &doc,
-            Some("src/lib.rs"),
-            "immutag",
-            "Entry point to the library.",
+            Some("1LrTstQYNZj8wCvBgipJqL9zghsofpsHEG"),
+            "xpriv",
+            "XPRIV",
         )
         .unwrap();
         write(doc.clone(), gpath).expect("failed to write toml to disk");
-        let immutag_res = immutag(&doc, Some("src/lib.rs"), "immutag").unwrap();
+        let immutag_res = immutag(&doc, Some("1LrTstQYNZj8wCvBgipJqL9zghsofpsHEG"), "xpriv").unwrap();
 
-        assert_eq!(immutag_res, "Entry point to the library.");
+        assert_eq!(immutag_res, "XPRIV");
 
         // Focus of test.
         let doc = open(gpath).unwrap();
-        let doc = delete_entry(doc.clone(), "src/lib.rs").expect("failed to delete entry");
+        let doc = delete_entry(doc.clone(), "1LrTstQYNZj8wCvBgipJqL9zghsofpsHEG").expect("failed to delete entry");
         write(doc, gpath).expect("failed to write toml to disk");
 
         let result = {
             let doc = open(".immutag/.immutag_tests/Immutag").unwrap();
-            immutag(&doc, Some("src/lib.rs"), "immutag")
+            immutag(&doc, Some("1LrTstQYNZj8wCvBgipJqL9zghsofpsHEG"), "xpriv")
         };
 
         assert_eq!(result.is_ok(), false);
-
-        fixture.teardown(true);
-    }
-
-    #[test]
-    fn immutagfile_delete_dir_entry() {
-        let path = ".immutag/.immutag_tests";
-        let gpath = ".immutag/.immutag_tests/Immutag";
-        let mut fixture = setup_test(path, "0.1.0", "NAME", "AUTHOR");
-        let doc = open(gpath).unwrap();
-        let doc = add_entry(&doc, Some("src/"), "immutag", "The source code.").unwrap();
-        write(doc.clone(), gpath).expect("failed to write toml to disk");
-        let immutag_res = immutag(&doc, Some("src/"), "immutag").unwrap();
-
-        assert_eq!(immutag_res, "The source code.");
-
-        // Focus of test.
-        let doc = open(gpath).unwrap();
-        let doc = delete_entry(doc.clone(), "src/").expect("failed to delete entry");
-        write(doc, gpath).expect("failed to write toml to disk");
-
-        let result = {
-            let doc = open(".immutag/.immutag_tests/Immutag").unwrap();
-            immutag(&doc, Some("src/"), "immutag")
-        };
-
-        assert_eq!(result.is_ok(), false);
-
-        fixture.teardown(true);
-    }
-
-    #[test]
-    fn error_immutagfile_delete_dir_entry() {
-        let path = ".immutag/.immutag_tests";
-        let gpath = ".immutag/.immutag_tests/Immutag";
-        let mut fixture = setup_test(path, "0.1.0", "NAME", "AUTHOR");
-        let doc = open(gpath).unwrap();
-        let doc = add_entry(&doc, Some("src/"), "immutag", "The source code.").unwrap();
-        write(doc.clone(), gpath).expect("failed to write toml to disk");
-        let immutag_res = immutag(&doc, Some("src/"), "immutag").unwrap();
-
-        assert_eq!(immutag_res, "The source code.");
-
-        // Focus of test.
-        let doc = open(gpath).unwrap();
-        let doc = delete_entry(doc.clone(), "src"); // name must be exact, "src/"
-
-        match doc {
-            Err(err) => match err {
-                ImmutagFileError::Error(e) => assert_eq!(ErrorKind::InvalidKey, e.kind),
-                _ => panic!("wrong error type"),
-            },
-            _ => panic!("expected an error"),
-        }
 
         fixture.teardown(true);
     }
