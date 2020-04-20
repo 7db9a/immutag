@@ -19,7 +19,7 @@ run-rust-test() {
     docker exec \
     -it \
     immutag_coding_1 \
-    cargo test -- --test-threads=1 --nocapture
+    cargo test $1 -- --test-threads=1 --nocapture
 }
 
 run-basic-bsv-test() {
@@ -36,7 +36,7 @@ run-test() {
     fi
 
     if [ "$1" = "rust" ]; then
-        run-rust-test
+        run-rust-test $2
     fi
 
     if [ "$1" = "" ]; then
@@ -62,5 +62,5 @@ fi
 
 if [ "$1" == "test" ]; then
     echo "test"
-    run-test $2
+    run-test $2 $3
 fi
