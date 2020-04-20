@@ -22,17 +22,15 @@ pub enum ImmutagFileState {
 }
 
 /// Creates a Immutag file with basic info.
-pub fn init<T: AsRef<str>>(path: T, version: T, name: T, author: T, immutag_version: T) {
+pub fn init<T: AsRef<str>>(path: T, version: T, name: T, author: T) {
     let toml = format!(
         r#"['about']
 version = "{}"
 name = "{}"
-author = "{}"
-immutag-version = "{}""#,
+author = "{}""#,
         version.as_ref(),
         name.as_ref(),
-        author.as_ref(),
-        immutag_version.as_ref()
+        author.as_ref()
     );
 
     let doc = toml.parse::<Document>().expect("invalid doc");
@@ -63,7 +61,6 @@ pub fn is_valid(doc: &Document) -> ImmutagFileState {
     let version = entry_exists(&doc, "about", Some("version"));
     let name = entry_exists(&doc, "about", Some("name"));
     let author = entry_exists(&doc, "about", Some("author"));
-    let g_version = entry_exists(&doc, "about", Some("immutag-version"));
 
     if version {
         valid = ImmutagFileState::Valid;
@@ -74,9 +71,6 @@ pub fn is_valid(doc: &Document) -> ImmutagFileState {
         valid = ImmutagFileState::Invalid;
     }
     if !author {
-        valid = ImmutagFileState::Invalid;
-    }
-    if !g_version {
         valid = ImmutagFileState::Invalid;
     }
 
@@ -452,8 +446,7 @@ version = "0.0.1"
         let immutag_fields = r#"['about']
 version = "0.1.0"
 name = "NAME"
-author = "AUTHOR"
-immutag-version = "0.1.0""#;
+author = "AUTHOR""#;
 
         let toml = immutag_fields
             .parse::<Document>()
@@ -469,7 +462,6 @@ version = "0.0.1""#;
 version = "0.1.0"
 name = "NAME"
 author = "AUTHOR"
-immutag-version = "0.1.0"
 
 ['src/lib.rs']
 immutag = "The libraries entry point."
@@ -493,7 +485,6 @@ mod integration {
         version: T,
         name: T,
         author: T,
-        immutag_version: T,
     ) -> Fixture {
         let fixture = Fixture::new()
             .add_dirpath(path.as_ref().to_string())
@@ -504,7 +495,6 @@ mod integration {
             version.as_ref().to_string(),
             name.as_ref().to_string(),
             author.as_ref().to_string(),
-            immutag_version.as_ref().to_string(),
         );
 
         fixture
@@ -531,7 +521,7 @@ mod integration {
     fn immutagfile_init() {
         let path = ".immutag/.immutag_tests";
         let gpath = ".immutag/.immutag_tests/Immutag";
-        let mut fixture = setup_test(path, "0.1.0", "NAME", "AUTHOR", "0.1.0");
+        let mut fixture = setup_test(path, "0.1.0", "NAME", "AUTHOR");
         let doc = open(gpath).unwrap();
         let is_valid = is_valid(&doc);
         let doc = open(gpath).unwrap();
@@ -539,7 +529,6 @@ mod integration {
 version = "0.1.0"
 name = "NAME"
 author = "AUTHOR"
-immutag-version = "0.1.0"
 "#;
         fixture.teardown(true);
         assert_eq!(is_valid, ImmutagFileState::Valid);
@@ -550,7 +539,7 @@ immutag-version = "0.1.0"
     fn immutagfile_add_entry() {
         let path = ".immutag/.immutag_tests";
         let gpath = ".immutag/.immutag_tests/Immutag";
-        let mut fixture = setup_test(path, "0.1.0", "NAME", "AUTHOR", "0.1.0");
+        let mut fixture = setup_test(path, "0.1.0", "NAME", "AUTHOR");
         let doc = open(gpath).unwrap();
         let doc = add_entry(
             &doc,
@@ -569,7 +558,7 @@ immutag-version = "0.1.0"
     fn immutagfile_add_dir_entry() {
         let path = ".immutag/.immutag_tests";
         let gpath = ".immutag/.immutag_tests/Immutag";
-        let mut fixture = setup_test(path, "0.1.0", "NAME", "AUTHOR", "0.1.0");
+        let mut fixture = setup_test(path, "0.1.0", "NAME", "AUTHOR");
         let doc = open(gpath).unwrap();
         let doc = add_entry(&doc, Some("src/"), "immutag", "The source code.").unwrap();
         write(doc.clone(), gpath).expect("failed to write toml to disk");
@@ -582,7 +571,7 @@ immutag-version = "0.1.0"
     fn immutagfile_error_update_entry() {
         let path = ".immutag/.immutag_tests";
         let gpath = ".immutag/.immutag_tests/Immutag";
-        let mut fixture = setup_test(path, "0.1.0", "NAME", "AUTHOR", "0.1.0");
+        let mut fixture = setup_test(path, "0.1.0", "NAME", "AUTHOR");
         let doc = open(gpath).unwrap();
         let result = update_entry(
             &doc,
@@ -601,7 +590,7 @@ immutag-version = "0.1.0"
     fn format_immutagfile_file_add_entry() {
         let path = ".immutag/.immutag_tests";
         let gpath = ".immutag/.immutag_tests/Immutag";
-        let mut fixture = setup_test(path, "0.1.0", "NAME", "AUTHOR", "0.1.0");
+        let mut fixture = setup_test(path, "0.1.0", "NAME", "AUTHOR");
         let (_, _) = setup_add(gpath);
 
         // Focus of test.
@@ -615,7 +604,6 @@ immutag-version = "0.1.0"
 version = "0.1.0"
 name = "NAME"
 author = "AUTHOR"
-immutag-version = "0.1.0"
 
 ['src/lib.rs']
 immutag = "Entry point to the library."
@@ -631,7 +619,7 @@ immutag = "Entry point to the library."
     fn immutagfile_entry_exists() {
         let path = ".immutag/.immutag_tests";
         let gpath = ".immutag/.immutag_tests/Immutag";
-        let mut fixture = setup_test(path, "0.1.0", "NAME", "AUTHOR", "0.1.0");
+        let mut fixture = setup_test(path, "0.1.0", "NAME", "AUTHOR");
         let (doc, _) = setup_add(gpath);
 
         assert_eq!(entry_exists(&doc, "src/lib.rs", None), true);
@@ -649,7 +637,7 @@ immutag = "Entry point to the library."
     fn immutagfile_update_entry() {
         let path = ".immutag/.immutag_tests";
         let gpath = ".immutag/.immutag_tests/Immutag";
-        let mut fixture = setup_test(path, "0.1.0", "NAME", "AUTHOR", "0.1.0");
+        let mut fixture = setup_test(path, "0.1.0", "NAME", "AUTHOR");
         let (doc, immutag_res) = setup_add(gpath);
         // Focus of test.
         let doc = update_entry(
@@ -672,7 +660,7 @@ immutag = "Entry point to the library."
     fn immutagfile_error_add_entry() {
         let path = ".immutag/.immutag_tests";
         let gpath = ".immutag/.immutag_tests/Immutag";
-        let mut fixture = setup_test(path, "0.1.0", "NAME", "AUTHOR", "0.1.0");
+        let mut fixture = setup_test(path, "0.1.0", "NAME", "AUTHOR");
         let (doc, immutag) = setup_add(gpath);
 
         // Focus of test.
@@ -692,7 +680,7 @@ immutag = "Entry point to the library."
     fn helper_immutagfile_delete_entry_thorough_check<T: AsRef<str>>(path_to_dir: T) {
         let path = path_to_dir;
         let gpath = path.as_ref().to_string() + "/Immutag";
-        let _fixture = setup_test(path.as_ref(), "0.1.0", "NAME", "AUTHOR", "0.1.0");
+        let _fixture = setup_test(path.as_ref(), "0.1.0", "NAME", "AUTHOR");
 
         let (doc, _) = setup_add(gpath.as_str());
 
@@ -709,7 +697,6 @@ immutag = "Entry point to the library."
 version = "0.1.0"
 name = "NAME"
 author = "AUTHOR"
-immutag-version = "0.1.0"
 
 ['src/lib.rs']
 immutag = "Entry point to the library."
@@ -767,7 +754,6 @@ immutag = "Entry point to the library."
 version = "0.2.0"
 name = "NAME"
 author = "CHANGED_AUTHOR"
-immutag-version = "0.1.0"
 
 ['src/lib.rs']
 immutag = "Entry point to the library."
@@ -790,7 +776,7 @@ immutag = "Tells git which files to ignore."
     fn immutagfile_delete_file_entry() {
         let path = ".immutag/.immutag_tests";
         let gpath = ".immutag/.immutag_tests/Immutag";
-        let mut fixture = setup_test(path, "0.1.0", "NAME", "AUTHOR", "0.1.0");
+        let mut fixture = setup_test(path, "0.1.0", "NAME", "AUTHOR");
         let doc = open(gpath).unwrap();
         let doc = add_entry(
             &doc,
@@ -823,7 +809,7 @@ immutag = "Tells git which files to ignore."
     fn immutagfile_delete_dir_entry() {
         let path = ".immutag/.immutag_tests";
         let gpath = ".immutag/.immutag_tests/Immutag";
-        let mut fixture = setup_test(path, "0.1.0", "NAME", "AUTHOR", "0.1.0");
+        let mut fixture = setup_test(path, "0.1.0", "NAME", "AUTHOR");
         let doc = open(gpath).unwrap();
         let doc = add_entry(&doc, Some("src/"), "immutag", "The source code.").unwrap();
         write(doc.clone(), gpath).expect("failed to write toml to disk");
@@ -850,7 +836,7 @@ immutag = "Tells git which files to ignore."
     fn error_immutagfile_delete_dir_entry() {
         let path = ".immutag/.immutag_tests";
         let gpath = ".immutag/.immutag_tests/Immutag";
-        let mut fixture = setup_test(path, "0.1.0", "NAME", "AUTHOR", "0.1.0");
+        let mut fixture = setup_test(path, "0.1.0", "NAME", "AUTHOR");
         let doc = open(gpath).unwrap();
         let doc = add_entry(&doc, Some("src/"), "immutag", "The source code.").unwrap();
         write(doc.clone(), gpath).expect("failed to write toml to disk");
