@@ -50,6 +50,23 @@ QmQPRexanRL6pnSPAzC696if49BviGaLNKvC3gp3ApPQmN: ["letter", "son", "advice" ] , "
 ```
 Each ipfs address corresponds to specific file version. Above, there are 2 file versions, representing a single mutable file. The above is for conceptual purposes and the file may look a lot different.
 
+Immutag searches for an "immutag-file" in the current directory.
+
+```
+['immutag']
+version = "0.1.0"
+
+['1LrTstQYNZj8wCvBgipJqL9zghsofpsHEG']
+xpriv = "XPRIV"
+mnemonic "MNEMONIC"
+
+['1JvFXyZMC31ShnD8PSKgN1HKQ2kGQLVpCt']
+xpriv = "XPRIV"
+mnemonic "MNEMONIC"
+```
+
+Each entry is a complete fileystem with potentially many respective files.
+
 ### File branching
 
 If a file version is considered important enough, a new branch can cheaply be created. A new hardened child bitcoin address is given to it. The forked file version is indicated by an opreturn on the original file. The opreturn has the forked file version's ipfs hash and the bitcoin address of the new branch.
