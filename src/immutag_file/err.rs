@@ -1,10 +1,10 @@
 pub use toml_edit::TomlError;
 
 #[derive(Debug)]
-pub enum MetadataFileError {
+pub enum ImmutagFileError {
     IoError(std::io::Error),
     TomlError(TomlError),
-    BoxMetadataFileError(std::boxed::Box<MetadataFileError>),
+    BoxImmutagFileError(std::boxed::Box<ImmutagFileError>),
     Error(Error),
 }
 
@@ -37,21 +37,21 @@ impl std::fmt::Display for Error {
     }
 }
 
-impl From<std::boxed::Box<MetadataFileError>> for MetadataFileError {
-    fn from(error: std::boxed::Box<MetadataFileError>) -> Self {
-        MetadataFileError::BoxMetadataFileError(error)
+impl From<std::boxed::Box<ImmutagFileError>> for ImmutagFileError {
+    fn from(error: std::boxed::Box<ImmutagFileError>) -> Self {
+        ImmutagFileError::BoxImmutagFileError(error)
     }
 }
 
-impl From<std::io::Error> for MetadataFileError {
+impl From<std::io::Error> for ImmutagFileError {
     fn from(error: std::io::Error) -> Self {
-        MetadataFileError::IoError(error)
+        ImmutagFileError::IoError(error)
     }
 }
 
-impl From<TomlError> for MetadataFileError {
+impl From<TomlError> for ImmutagFileError {
     fn from(error: TomlError) -> Self {
-        MetadataFileError::TomlError(error)
+        ImmutagFileError::TomlError(error)
     }
 }
 
@@ -61,8 +61,8 @@ impl std::error::Error for Error {
     }
 }
 
-impl From<Error> for MetadataFileError {
+impl From<Error> for ImmutagFileError {
     fn from(error: Error) -> Self {
-        MetadataFileError::Error(error)
+        ImmutagFileError::Error(error)
     }
 }

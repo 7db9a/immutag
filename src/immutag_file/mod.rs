@@ -1,5 +1,5 @@
 /*
-This module manages the specifics of the Metadata file.
+This module manages the specifics of the Immutag file.
 */
 extern crate toml;
 extern crate toml_edit;
@@ -8,47 +8,47 @@ use toml_edit::{value, Document};
 pub mod err;
 pub mod common;
 use err::Error;
-pub use err::{ErrorKind, MetadataFileError};
+pub use err::{ErrorKind, ImmutagFileError};
 
 use std::fs::{read_to_string, File};
 use std::io::Write; // Not sure why, but file.write_all doesn't work without it. Not explicit to me.
 
-/// Reveals the state of the Metadata file.
+/// Reveals the state of the Immutag file.
 #[derive(Clone, Debug, PartialEq)]
-pub enum MetadataFileState {
+pub enum ImmutagFileState {
     NonExistant,
     Valid,
     Invalid,
 }
 
-/// Creates a Metadata file with basic info.
-pub fn init<T: AsRef<str>>(path: T, version: T, name: T, author: T, git_metadata_version: T) {
+/// Creates a Immutag file with basic info.
+pub fn init<T: AsRef<str>>(path: T, version: T, name: T, author: T, immutag_version: T) {
     let toml = format!(
         r#"['about']
 version = "{}"
 name = "{}"
 author = "{}"
-git-metadata-version = "{}""#,
+immutag-version = "{}""#,
         version.as_ref(),
         name.as_ref(),
         author.as_ref(),
-        git_metadata_version.as_ref()
+        immutag_version.as_ref()
     );
 
     let doc = toml.parse::<Document>().expect("invalid doc");
     write(doc, path).expect("failed to write toml to disk");
 }
 
-/// Open a Metadata file.
-pub fn open<T: AsRef<str>>(path: T) -> Result<Document, MetadataFileError> {
+/// Open a Immutag file.
+pub fn open<T: AsRef<str>>(path: T) -> Result<Document, ImmutagFileError> {
     let data = read_to_string(path.as_ref())?;
     let doc = data.parse::<Document>()?;
 
     Ok(doc)
 }
 
-/// Write to a Metadata file.
-pub fn write<T: AsRef<str>>(toml_doc: Document, path: T) -> Result<(), MetadataFileError> {
+/// Write to a Immutag file.
+pub fn write<T: AsRef<str>>(toml_doc: Document, path: T) -> Result<(), ImmutagFileError> {
     let toml_string = toml_doc.to_string();
     let mut file = File::create(path.as_ref())?;
     file.write_all(toml_string.as_bytes())?;
@@ -58,69 +58,69 @@ pub fn write<T: AsRef<str>>(toml_doc: Document, path: T) -> Result<(), MetadataF
 
 /// Valid if the version field can be read. Should rename pass
 /// toml value into method, that other fields can be validated.
-pub fn is_valid(doc: &Document) -> MetadataFileState {
-    let mut valid: MetadataFileState;
+pub fn is_valid(doc: &Document) -> ImmutagFileState {
+    let mut valid: ImmutagFileState;
     let version = entry_exists(&doc, "about", Some("version"));
     let name = entry_exists(&doc, "about", Some("name"));
     let author = entry_exists(&doc, "about", Some("author"));
-    let g_version = entry_exists(&doc, "about", Some("git-metadata-version"));
+    let g_version = entry_exists(&doc, "about", Some("immutag-version"));
 
     if version {
-        valid = MetadataFileState::Valid;
+        valid = ImmutagFileState::Valid;
     } else {
-        valid = MetadataFileState::Invalid;
+        valid = ImmutagFileState::Invalid;
     }
     if !name {
-        valid = MetadataFileState::Invalid;
+        valid = ImmutagFileState::Invalid;
     }
     if !author {
-        valid = MetadataFileState::Invalid;
+        valid = ImmutagFileState::Invalid;
     }
     if !g_version {
-        valid = MetadataFileState::Invalid;
+        valid = ImmutagFileState::Invalid;
     }
 
     valid
 }
 
-///! Retrieve field data from a Metadata file. For example, if the file name is provided, it will attempt to retrieve the field `metadata` nested in the `README.md` entry.
+///! Retrieve field data from a Immutag file. For example, if the file name is provided, it will attempt to retrieve the field `immutag` nested in the `README.md` entry.
 ///!  ```ignore
 ///!  [README.md]
-///!  metadata = "The README."
+///!  immutag = "The README."
 ///!  ```
 ///! If no file name is given, it will retrieve all the nested value in the key and not necessarily a specific field.
-pub fn metadata<T: AsRef<str>>(
+pub fn immutag<T: AsRef<str>>(
     doc: &Document,
     file_name: Option<T>,
     key: T,
-) -> Result<String, MetadataFileError> {
+) -> Result<String, ImmutagFileError> {
     if file_name.is_some() {
         if let Some(data) = doc[file_name.unwrap().as_ref()][key.as_ref()].as_str() {
             Ok(data.to_string())
         } else {
             let err = Error::new(
-                "Invalid nested entry in metadata file",
+                "Invalid nested entry in immutag file",
                 ErrorKind::InvalidKey,
             );
-            Err(MetadataFileError::from(err))
+            Err(ImmutagFileError::from(err))
         }
     } else if let Some(data) = doc[key.as_ref()].as_str() {
         Ok(data.to_string())
     } else {
-        let err = Error::new("Invalid entry in metadata file", ErrorKind::InvalidKey);
-        Err(MetadataFileError::from(err))
+        let err = Error::new("Invalid entry in immutag file", ErrorKind::InvalidKey);
+        Err(ImmutagFileError::from(err))
     }
 }
 
 /// A crude way to find if an entry exits. Doesn't work for nested etnries.
-/// `path` paramaters is the path to the Metadata file.
+/// `path` paramaters is the path to the Immutag file.
 pub fn exists<T: AsRef<str>>(path: T, name: T) -> bool {
     let doc = open(path.as_ref()).unwrap();
-    metadata(&doc, Some(name.as_ref()), "metadata").is_ok()
+    immutag(&doc, Some(name.as_ref()), "immutag").is_ok()
 }
 
 /// See if an entry exists, with an optional nested key.
-/// `path` paramater is the path to the Metadata file.
+/// `path` paramater is the path to the Immutag file.
 pub fn entry_exists<T: AsRef<str>>(doc: &Document, key: T, key_nested: Option<T>) -> bool {
     if let Some(_key_nested) = key_nested {
         if let Some(table) = doc[key.as_ref()].as_table() {
@@ -138,17 +138,17 @@ fn insert_entry<T: AsRef<str>>(
     doc: &Document,
     file_name: Option<T>,
     key: T,
-    metadata: T,
-) -> Result<Document, MetadataFileError> {
+    immutag: T,
+) -> Result<Document, ImmutagFileError> {
     let status = is_valid(&doc);
-    if status == MetadataFileState::Valid {
-        insert_entry_same_doc(&doc, file_name, key, metadata)
-    } else if status == MetadataFileState::NonExistant && file_name.is_some() {
-        insert_entry_new_doc(&doc, file_name.unwrap(), key, metadata)
+    if status == ImmutagFileState::Valid {
+        insert_entry_same_doc(&doc, file_name, key, immutag)
+    } else if status == ImmutagFileState::NonExistant && file_name.is_some() {
+        insert_entry_new_doc(&doc, file_name.unwrap(), key, immutag)
     } else {
         // Invalid
-        let err = Error::new("invalid metadata file", ErrorKind::InvalidFile);
-        Err(MetadataFileError::from(err))
+        let err = Error::new("invalid immutag file", ErrorKind::InvalidFile);
+        Err(ImmutagFileError::from(err))
     }
 }
 
@@ -156,17 +156,17 @@ fn insert_entry_new_doc<T: AsRef<str>>(
     doc: &Document,
     file_name: T,
     key: T,
-    metadata: T,
-) -> Result<Document, MetadataFileError> {
+    immutag: T,
+) -> Result<Document, ImmutagFileError> {
     let mut toml_add: String;
     let toml = doc.to_string();
-    if key.as_ref() == "metadata" {
+    if key.as_ref() == "immutag" {
         toml_add = format!(
             r#"
 ['{}']
-metadata = "{}""#,
+immutag = "{}""#,
             file_name.as_ref(),
-            metadata.as_ref()
+            immutag.as_ref()
         );
     } else {
         toml_add = format!("['{}']", file_name.as_ref());
@@ -181,19 +181,19 @@ fn insert_entry_same_doc<T: AsRef<str>>(
     doc: &Document,
     file_name: Option<T>,
     key: T,
-    metadata: T,
-) -> Result<Document, MetadataFileError> {
+    immutag: T,
+) -> Result<Document, ImmutagFileError> {
     if let Some(_file_name) = file_name {
         let mut doc = doc.clone();
         if !entry_exists(&doc, _file_name.as_ref(), None) {
             let toml = doc.to_string();
-            if key.as_ref() == "metadata" {
+            if key.as_ref() == "immutag" {
                 let toml_add = format!(
                     r#"
 ['{}']
-metadata = "{}""#,
+immutag = "{}""#,
                     _file_name.as_ref(),
-                    metadata.as_ref()
+                    immutag.as_ref()
                 );
 
                 let toml = toml + &toml_add;
@@ -202,19 +202,19 @@ metadata = "{}""#,
                 Ok(doc)
             } else {
                 let err = Error::new(
-                    "no sub-keys to file/dir entries other than 'metadata' is allowed",
+                    "no sub-keys to file/dir entries other than 'immutag' is allowed",
                     ErrorKind::InvalidKey,
                 );
-                Err(MetadataFileError::from(err))
+                Err(ImmutagFileError::from(err))
             }
         } else {
-            doc[_file_name.as_ref()][key.as_ref()] = value(metadata.as_ref());
+            doc[_file_name.as_ref()][key.as_ref()] = value(immutag.as_ref());
 
             Ok(doc)
         }
     } else {
         let mut doc = doc.clone();
-        doc[key.as_ref()] = value(metadata.as_ref());
+        doc[key.as_ref()] = value(immutag.as_ref());
 
         Ok(doc)
     }
@@ -224,22 +224,22 @@ pub fn add_entry<T: AsRef<str>>(
     doc: &Document,
     file_name: Option<T>,
     name: T,
-    metadata: T,
-) -> Result<Document, MetadataFileError> {
+    immutag: T,
+) -> Result<Document, ImmutagFileError> {
     let file_state = is_valid(&doc);
-    if file_state == MetadataFileState::NonExistant {
-        let err = Error::new("metadata file doesn't exist", ErrorKind::NoFile);
-        Err(MetadataFileError::from(err))
+    if file_state == ImmutagFileState::NonExistant {
+        let err = Error::new("immutag file doesn't exist", ErrorKind::NoFile);
+        Err(ImmutagFileError::from(err))
     } else if file_name.is_none() {
         let entry_exists = entry_exists(&doc, "about", Some(name.as_ref()));
         if !entry_exists {
-            insert_entry(&doc, None, name.as_ref(), metadata.as_ref())
+            insert_entry(&doc, None, name.as_ref(), immutag.as_ref())
         } else {
             let err = Error::new(
-                "failed to add sub-entry to about field metadata file",
+                "failed to add sub-entry to about field immutag file",
                 ErrorKind::DuplicateKey,
             );
-            Err(MetadataFileError::from(err))
+            Err(ImmutagFileError::from(err))
         }
     } else {
         let file_name = file_name.unwrap();
@@ -249,14 +249,14 @@ pub fn add_entry<T: AsRef<str>>(
                 &doc,
                 Some(file_name.as_ref()),
                 name.as_ref(),
-                metadata.as_ref(),
+                immutag.as_ref(),
             )
         } else {
             let err = Error::new(
-                "failed to add entry to metadata file",
+                "failed to add entry to immutag file",
                 ErrorKind::DuplicateKey,
             );
-            Err(MetadataFileError::from(err))
+            Err(ImmutagFileError::from(err))
         }
     }
 }
@@ -265,12 +265,12 @@ pub fn update_entry<T: AsRef<str>>(
     doc: &Document,
     file_name: Option<T>,
     name: T,
-    metadata: T,
-) -> Result<Document, MetadataFileError> {
+    immutag: T,
+) -> Result<Document, ImmutagFileError> {
     let file_state = is_valid(&doc);
-    if file_state == MetadataFileState::NonExistant {
-        let err = Error::new("metadata file doesn't exist", ErrorKind::InvalidFile);
-        Err(MetadataFileError::from(err))
+    if file_state == ImmutagFileState::NonExistant {
+        let err = Error::new("immutag file doesn't exist", ErrorKind::InvalidFile);
+        Err(ImmutagFileError::from(err))
     } else if file_name.is_some() {
         let file_name = file_name.unwrap();
         let entry_exists = entry_exists(&doc, file_name.as_ref(), None);
@@ -279,25 +279,25 @@ pub fn update_entry<T: AsRef<str>>(
                 &doc,
                 Some(file_name.as_ref()),
                 name.as_ref(),
-                metadata.as_ref(),
+                immutag.as_ref(),
             )
         } else {
             let err = Error::new(
-                "git-metadata entry doesn't exist in metadatafile",
+                "immutag entry doesn't exist in immutagfile",
                 ErrorKind::InvalidKey,
             );
-            Err(MetadataFileError::from(err))
+            Err(ImmutagFileError::from(err))
         }
     } else {
         let entry_exists = entry_exists(&doc, "about", Some(name.as_ref()));
         if entry_exists {
-            insert_entry(&doc, Some("about"), name.as_ref(), metadata.as_ref())
+            insert_entry(&doc, Some("about"), name.as_ref(), immutag.as_ref())
         } else {
             let err = Error::new(
-                "file entry doesn't exist in metadata file",
+                "file entry doesn't exist in immutag file",
                 ErrorKind::InvalidKey,
             );
-            Err(MetadataFileError::from(err))
+            Err(ImmutagFileError::from(err))
         }
     }
 }
@@ -305,8 +305,8 @@ pub fn update_entry<T: AsRef<str>>(
 pub fn delete_entry<T: AsRef<str>>(
     doc: Document,
     file_name: T,
-) -> Result<Document, MetadataFileError> {
-    let doc: Result<Document, MetadataFileError> = {
+) -> Result<Document, ImmutagFileError> {
+    let doc: Result<Document, ImmutagFileError> = {
         let mut _doc = doc.clone();
         let table = _doc.as_table_mut();
         table.set_implicit(true);
@@ -321,10 +321,10 @@ pub fn delete_entry<T: AsRef<str>>(
             Ok(doc)
         } else {
             let err = Error::new(
-                "failed to delete entry in metadata file",
+                "failed to delete entry in immutag file",
                 ErrorKind::InvalidKey,
             );
-            Err(MetadataFileError::from(err))
+            Err(ImmutagFileError::from(err))
         }
     };
 
@@ -392,7 +392,7 @@ c = { d = "hello" }
     fn toml_edit_set_file_realistic() {
         let toml = r#"
 ['src/lib.rs']
-metadata = "The libraries entry point."
+immutag = "The libraries entry point."
         "#;
         let mut doc = toml.parse::<Document>().expect("invalid doc");
         assert_eq!(doc.to_string(), toml);
@@ -402,7 +402,7 @@ metadata = "The libraries entry point."
 
         let expected = r#"
 ['src/lib.rs']
-metadata = "The libraries entry point."
+immutag = "The libraries entry point."
 version = "0.0.1"
         "#;
         assert_eq!(doc.to_string(), expected);
@@ -412,20 +412,20 @@ version = "0.0.1"
     fn toml_edit_get_nested_item() {
         let toml = r#"
 ['src/lib.rs']
-metadata = "The libraries entry point."
+immutag = "The libraries entry point."
         "#;
         let doc = toml.parse::<Document>().expect("invalid doc");
-        let metadata = doc["src/lib.rs"]["metadata"].as_str();
-        let expected_metadata = "The libraries entry point.";
+        let immutag = doc["src/lib.rs"]["immutag"].as_str();
+        let expected_immutag = "The libraries entry point.";
 
-        assert_eq!(metadata.unwrap(), expected_metadata)
+        assert_eq!(immutag.unwrap(), expected_immutag)
     }
 
     #[test]
     fn toml_edit_set_get_nested_realistic() {
         let toml = r#"
 ['src/lib.rs']
-metadata = "The libraries entry point."
+immutag = "The libraries entry point."
         "#;
         let mut doc = toml.parse::<Document>().expect("invalid doc");
         assert_eq!(doc.to_string(), toml);
@@ -435,13 +435,13 @@ metadata = "The libraries entry point."
 
         let expected = r#"
 ['src/lib.rs']
-metadata = "The libraries entry point."
+immutag = "The libraries entry point."
 version = "0.0.1"
         "#;
 
         assert_eq!(doc.to_string(), expected);
         assert_eq!(
-            doc["src/lib.rs"]["metadata"].as_str().unwrap(),
+            doc["src/lib.rs"]["immutag"].as_str().unwrap(),
             "The libraries entry point."
         );
         assert_eq!(doc["src/lib.rs"]["version"].as_str().unwrap(), "0.0.1")
@@ -449,34 +449,34 @@ version = "0.0.1"
 
     #[test]
     fn toml_append() {
-        let git_metadata_fields = r#"['about']
+        let immutag_fields = r#"['about']
 version = "0.1.0"
 name = "NAME"
 author = "AUTHOR"
-git-metadata-version = "0.1.0""#;
+immutag-version = "0.1.0""#;
 
-        let toml = git_metadata_fields
+        let toml = immutag_fields
             .parse::<Document>()
             .expect("invalid doc");
         let toml_string = toml.to_string();
 
-        let metadata_fields = r#"
+        let immutag_fields = r#"
 ['src/lib.rs']
-metadata = "The libraries entry point."
+immutag = "The libraries entry point."
 version = "0.0.1""#;
 
         let expected = r#"['about']
 version = "0.1.0"
 name = "NAME"
 author = "AUTHOR"
-git-metadata-version = "0.1.0"
+immutag-version = "0.1.0"
 
 ['src/lib.rs']
-metadata = "The libraries entry point."
+immutag = "The libraries entry point."
 version = "0.0.1"
 "#;
 
-        let new_toml_string = toml_string + metadata_fields;
+        let new_toml_string = toml_string + immutag_fields;
         let new_toml = new_toml_string.parse::<Document>().expect("invalid doc");
 
         assert_eq!(new_toml.to_string(), expected);
@@ -493,44 +493,44 @@ mod integration {
         version: T,
         name: T,
         author: T,
-        git_metadata_version: T,
+        immutag_version: T,
     ) -> Fixture {
         let fixture = Fixture::new()
             .add_dirpath(path.as_ref().to_string())
             .build();
 
         init(
-            path.as_ref().to_string() + "/Metadata",
+            path.as_ref().to_string() + "/Immutag",
             version.as_ref().to_string(),
             name.as_ref().to_string(),
             author.as_ref().to_string(),
-            git_metadata_version.as_ref().to_string(),
+            immutag_version.as_ref().to_string(),
         );
 
         fixture
     }
 
     pub fn setup_add<T: AsRef<str>>(
-        metadata_path: T,
-    ) -> (Document, Result<String, MetadataFileError>) {
-        let doc = open(metadata_path.as_ref()).unwrap();
+        immutag_path: T,
+    ) -> (Document, Result<String, ImmutagFileError>) {
+        let doc = open(immutag_path.as_ref()).unwrap();
         let doc = add_entry(
             &doc,
             Some("src/lib.rs"),
-            "metadata",
+            "immutag",
             "Entry point to the library.",
         )
         .unwrap();
-        write(doc.clone(), metadata_path.as_ref()).expect("failed to write toml to disk");
-        let metadata_res = metadata(&doc, Some("src/lib.rs"), "metadata");
+        write(doc.clone(), immutag_path.as_ref()).expect("failed to write toml to disk");
+        let immutag_res = immutag(&doc, Some("src/lib.rs"), "immutag");
 
-        (doc, metadata_res)
+        (doc, immutag_res)
     }
 
     #[test]
-    fn metadatafile_init() {
-        let path = ".metadata/.metadata_tests";
-        let gpath = ".metadata/.metadata_tests/Metadata";
+    fn immutagfile_init() {
+        let path = ".immutag/.immutag_tests";
+        let gpath = ".immutag/.immutag_tests/Immutag";
         let mut fixture = setup_test(path, "0.1.0", "NAME", "AUTHOR", "0.1.0");
         let doc = open(gpath).unwrap();
         let is_valid = is_valid(&doc);
@@ -539,55 +539,55 @@ mod integration {
 version = "0.1.0"
 name = "NAME"
 author = "AUTHOR"
-git-metadata-version = "0.1.0"
+immutag-version = "0.1.0"
 "#;
         fixture.teardown(true);
-        assert_eq!(is_valid, MetadataFileState::Valid);
+        assert_eq!(is_valid, ImmutagFileState::Valid);
         assert_eq!(doc.to_string(), expected);
     }
 
     #[test]
-    fn metadatafile_add_entry() {
-        let path = ".metadata/.metadata_tests";
-        let gpath = ".metadata/.metadata_tests/Metadata";
+    fn immutagfile_add_entry() {
+        let path = ".immutag/.immutag_tests";
+        let gpath = ".immutag/.immutag_tests/Immutag";
         let mut fixture = setup_test(path, "0.1.0", "NAME", "AUTHOR", "0.1.0");
         let doc = open(gpath).unwrap();
         let doc = add_entry(
             &doc,
             Some("src/lib.rs"),
-            "metadata",
+            "immutag",
             "Entry point to the library.",
         )
         .unwrap();
         write(doc.clone(), gpath).expect("failed to write toml to disk");
-        let metadata_res = metadata(&doc, Some("src/lib.rs"), "metadata").unwrap();
+        let immutag_res = immutag(&doc, Some("src/lib.rs"), "immutag").unwrap();
         fixture.teardown(true);
-        assert_eq!(metadata_res, "Entry point to the library.");
+        assert_eq!(immutag_res, "Entry point to the library.");
     }
 
     #[test]
-    fn metadatafile_add_dir_entry() {
-        let path = ".metadata/.metadata_tests";
-        let gpath = ".metadata/.metadata_tests/Metadata";
+    fn immutagfile_add_dir_entry() {
+        let path = ".immutag/.immutag_tests";
+        let gpath = ".immutag/.immutag_tests/Immutag";
         let mut fixture = setup_test(path, "0.1.0", "NAME", "AUTHOR", "0.1.0");
         let doc = open(gpath).unwrap();
-        let doc = add_entry(&doc, Some("src/"), "metadata", "The source code.").unwrap();
+        let doc = add_entry(&doc, Some("src/"), "immutag", "The source code.").unwrap();
         write(doc.clone(), gpath).expect("failed to write toml to disk");
-        let metadata_res = metadata(&doc, Some("src/"), "metadata").unwrap();
+        let immutag_res = immutag(&doc, Some("src/"), "immutag").unwrap();
         fixture.teardown(true);
-        assert_eq!(metadata_res, "The source code.");
+        assert_eq!(immutag_res, "The source code.");
     }
 
     #[test]
-    fn metadatafile_error_update_entry() {
-        let path = ".metadata/.metadata_tests";
-        let gpath = ".metadata/.metadata_tests/Metadata";
+    fn immutagfile_error_update_entry() {
+        let path = ".immutag/.immutag_tests";
+        let gpath = ".immutag/.immutag_tests/Immutag";
         let mut fixture = setup_test(path, "0.1.0", "NAME", "AUTHOR", "0.1.0");
         let doc = open(gpath).unwrap();
         let result = update_entry(
             &doc,
             Some("src/lib.rs"),
-            "metadata",
+            "immutag",
             "Entry point to the library.",
         );
 
@@ -598,14 +598,14 @@ git-metadata-version = "0.1.0"
 
     // Verifies there is no unexpected whitespace or formatting issuees for a basic case.
     #[test]
-    fn format_metadatafile_file_add_entry() {
-        let path = ".metadata/.metadata_tests";
-        let gpath = ".metadata/.metadata_tests/Metadata";
+    fn format_immutagfile_file_add_entry() {
+        let path = ".immutag/.immutag_tests";
+        let gpath = ".immutag/.immutag_tests/Immutag";
         let mut fixture = setup_test(path, "0.1.0", "NAME", "AUTHOR", "0.1.0");
         let (_, _) = setup_add(gpath);
 
         // Focus of test.
-        let toml_string = read_to_string(gpath).expect("failed to read metadatafile");
+        let toml_string = read_to_string(gpath).expect("failed to read immutagfile");
 
         let doc = open(gpath).unwrap();
 
@@ -615,10 +615,10 @@ git-metadata-version = "0.1.0"
 version = "0.1.0"
 name = "NAME"
 author = "AUTHOR"
-git-metadata-version = "0.1.0"
+immutag-version = "0.1.0"
 
 ['src/lib.rs']
-metadata = "Entry point to the library."
+immutag = "Entry point to the library."
 "#;
 
         fixture.teardown(true);
@@ -628,9 +628,9 @@ metadata = "Entry point to the library."
     }
 
     #[test]
-    fn metadatafile_entry_exists() {
-        let path = ".metadata/.metadata_tests";
-        let gpath = ".metadata/.metadata_tests/Metadata";
+    fn immutagfile_entry_exists() {
+        let path = ".immutag/.immutag_tests";
+        let gpath = ".immutag/.immutag_tests/Immutag";
         let mut fixture = setup_test(path, "0.1.0", "NAME", "AUTHOR", "0.1.0");
         let (doc, _) = setup_add(gpath);
 
@@ -646,59 +646,59 @@ metadata = "Entry point to the library."
     }
 
     #[test]
-    fn metadatafile_update_entry() {
-        let path = ".metadata/.metadata_tests";
-        let gpath = ".metadata/.metadata_tests/Metadata";
+    fn immutagfile_update_entry() {
+        let path = ".immutag/.immutag_tests";
+        let gpath = ".immutag/.immutag_tests/Immutag";
         let mut fixture = setup_test(path, "0.1.0", "NAME", "AUTHOR", "0.1.0");
-        let (doc, metadata_res) = setup_add(gpath);
+        let (doc, immutag_res) = setup_add(gpath);
         // Focus of test.
         let doc = update_entry(
             &doc,
             Some("src/lib.rs"),
-            "metadata",
+            "immutag",
             "Like main.rs, but for libraries.",
         )
         .unwrap();
         write(doc.clone(), gpath).expect("failed to write toml to disk");
-        let updated_metadata_res = metadata(&doc, Some("src/lib.rs"), "metadata").unwrap();
+        let updated_immutag_res = immutag(&doc, Some("src/lib.rs"), "immutag").unwrap();
 
         fixture.teardown(true);
 
-        assert_eq!(metadata_res.unwrap(), "Entry point to the library.");
-        assert_eq!(updated_metadata_res, "Like main.rs, but for libraries.");
+        assert_eq!(immutag_res.unwrap(), "Entry point to the library.");
+        assert_eq!(updated_immutag_res, "Like main.rs, but for libraries.");
     }
 
     #[test]
-    fn metadatafile_error_add_entry() {
-        let path = ".metadata/.metadata_tests";
-        let gpath = ".metadata/.metadata_tests/Metadata";
+    fn immutagfile_error_add_entry() {
+        let path = ".immutag/.immutag_tests";
+        let gpath = ".immutag/.immutag_tests/Immutag";
         let mut fixture = setup_test(path, "0.1.0", "NAME", "AUTHOR", "0.1.0");
-        let (doc, metadata) = setup_add(gpath);
+        let (doc, immutag) = setup_add(gpath);
 
         // Focus of test.
         let result = add_entry(
             &doc,
             Some("src/lib.rs"),
-            "metadata",
+            "immutag",
             "Like main.rs, but for libraries.",
         );
 
         fixture.teardown(true);
 
-        assert_eq!(metadata.unwrap(), "Entry point to the library.");
+        assert_eq!(immutag.unwrap(), "Entry point to the library.");
         assert!(result.is_err());
     }
 
-    fn helper_metadatafile_delete_entry_thorough_check<T: AsRef<str>>(path_to_dir: T) {
+    fn helper_immutagfile_delete_entry_thorough_check<T: AsRef<str>>(path_to_dir: T) {
         let path = path_to_dir;
-        let gpath = path.as_ref().to_string() + "/Metadata";
+        let gpath = path.as_ref().to_string() + "/Immutag";
         let _fixture = setup_test(path.as_ref(), "0.1.0", "NAME", "AUTHOR", "0.1.0");
 
         let (doc, _) = setup_add(gpath.as_str());
 
         let lib_exists = entry_exists(&doc, "src/lib.rs", None);
 
-        let doc = add_entry(&doc, Some("README.md"), "metadata", "The README.").unwrap();
+        let doc = add_entry(&doc, Some("README.md"), "immutag", "The README.").unwrap();
 
         write(doc.clone(), gpath.as_str()).expect("failed to write toml to disk");
 
@@ -709,10 +709,10 @@ metadata = "Entry point to the library."
 version = "0.1.0"
 name = "NAME"
 author = "AUTHOR"
-git-metadata-version = "0.1.0"
+immutag-version = "0.1.0"
 
 ['src/lib.rs']
-metadata = "Entry point to the library."
+immutag = "Entry point to the library."
 "#;
 
         assert_eq!(lib_exists, true);
@@ -720,19 +720,19 @@ metadata = "Entry point to the library."
     }
 
     #[test]
-    fn metadatafile_delete_entry_thorough_assert() {
-        let path = ".metadata/.metadata_tests";
-        helper_metadatafile_delete_entry_thorough_check(path);
+    fn immutagfile_delete_entry_thorough_assert() {
+        let path = ".immutag/.immutag_tests";
+        helper_immutagfile_delete_entry_thorough_check(path);
 
         Fixture::new().add_dirpath(path.to_string()).teardown(true);
     }
 
     #[test]
-    fn metadatafile_complicated() {
-        let path = ".metadata/.metadata_tests";
-        helper_metadatafile_delete_entry_thorough_check(path);
+    fn immutagfile_complicated() {
+        let path = ".immutag/.immutag_tests";
+        helper_immutagfile_delete_entry_thorough_check(path);
 
-        let doc = open(path.to_string() + "/Metadata").unwrap();
+        let doc = open(path.to_string() + "/Immutag").unwrap();
 
         let modified_doc = {
             let update_version =
@@ -746,7 +746,7 @@ metadata = "Entry point to the library."
                 add_entry(
                     &update_author(),
                     Some("src/main.rs"),
-                    "metadata",
+                    "immutag",
                     "Like lib.rs, but for apps.",
                 )
                 .unwrap()
@@ -755,31 +755,31 @@ metadata = "Entry point to the library."
             add_entry(
                 &add_main(),
                 Some(".gitignore"),
-                "metadata",
+                "immutag",
                 "Tells git which files to ignore.",
             )
             .unwrap()
         };
 
-        write(modified_doc, path.to_string() + "/Metadata").expect("failed to write toml to disk");
+        write(modified_doc, path.to_string() + "/Immutag").expect("failed to write toml to disk");
 
         let expected = r#"['about']
 version = "0.2.0"
 name = "NAME"
 author = "CHANGED_AUTHOR"
-git-metadata-version = "0.1.0"
+immutag-version = "0.1.0"
 
 ['src/lib.rs']
-metadata = "Entry point to the library."
+immutag = "Entry point to the library."
 
 ['src/main.rs']
-metadata = "Like lib.rs, but for apps."
+immutag = "Like lib.rs, but for apps."
 
 ['.gitignore']
-metadata = "Tells git which files to ignore."
+immutag = "Tells git which files to ignore."
 "#;
 
-        let doc = open(path.to_string() + "/Metadata").unwrap();
+        let doc = open(path.to_string() + "/Immutag").unwrap();
 
         Fixture::new().add_dirpath(path.to_string()).teardown(true);
 
@@ -787,22 +787,22 @@ metadata = "Tells git which files to ignore."
     }
 
     #[test]
-    fn metadatafile_delete_file_entry() {
-        let path = ".metadata/.metadata_tests";
-        let gpath = ".metadata/.metadata_tests/Metadata";
+    fn immutagfile_delete_file_entry() {
+        let path = ".immutag/.immutag_tests";
+        let gpath = ".immutag/.immutag_tests/Immutag";
         let mut fixture = setup_test(path, "0.1.0", "NAME", "AUTHOR", "0.1.0");
         let doc = open(gpath).unwrap();
         let doc = add_entry(
             &doc,
             Some("src/lib.rs"),
-            "metadata",
+            "immutag",
             "Entry point to the library.",
         )
         .unwrap();
         write(doc.clone(), gpath).expect("failed to write toml to disk");
-        let metadata_res = metadata(&doc, Some("src/lib.rs"), "metadata").unwrap();
+        let immutag_res = immutag(&doc, Some("src/lib.rs"), "immutag").unwrap();
 
-        assert_eq!(metadata_res, "Entry point to the library.");
+        assert_eq!(immutag_res, "Entry point to the library.");
 
         // Focus of test.
         let doc = open(gpath).unwrap();
@@ -810,8 +810,8 @@ metadata = "Tells git which files to ignore."
         write(doc, gpath).expect("failed to write toml to disk");
 
         let result = {
-            let doc = open(".metadata/.metadata_tests/Metadata").unwrap();
-            metadata(&doc, Some("src/lib.rs"), "metadata")
+            let doc = open(".immutag/.immutag_tests/Immutag").unwrap();
+            immutag(&doc, Some("src/lib.rs"), "immutag")
         };
 
         assert_eq!(result.is_ok(), false);
@@ -820,16 +820,16 @@ metadata = "Tells git which files to ignore."
     }
 
     #[test]
-    fn metadatafile_delete_dir_entry() {
-        let path = ".metadata/.metadata_tests";
-        let gpath = ".metadata/.metadata_tests/Metadata";
+    fn immutagfile_delete_dir_entry() {
+        let path = ".immutag/.immutag_tests";
+        let gpath = ".immutag/.immutag_tests/Immutag";
         let mut fixture = setup_test(path, "0.1.0", "NAME", "AUTHOR", "0.1.0");
         let doc = open(gpath).unwrap();
-        let doc = add_entry(&doc, Some("src/"), "metadata", "The source code.").unwrap();
+        let doc = add_entry(&doc, Some("src/"), "immutag", "The source code.").unwrap();
         write(doc.clone(), gpath).expect("failed to write toml to disk");
-        let metadata_res = metadata(&doc, Some("src/"), "metadata").unwrap();
+        let immutag_res = immutag(&doc, Some("src/"), "immutag").unwrap();
 
-        assert_eq!(metadata_res, "The source code.");
+        assert_eq!(immutag_res, "The source code.");
 
         // Focus of test.
         let doc = open(gpath).unwrap();
@@ -837,8 +837,8 @@ metadata = "Tells git which files to ignore."
         write(doc, gpath).expect("failed to write toml to disk");
 
         let result = {
-            let doc = open(".metadata/.metadata_tests/Metadata").unwrap();
-            metadata(&doc, Some("src/"), "metadata")
+            let doc = open(".immutag/.immutag_tests/Immutag").unwrap();
+            immutag(&doc, Some("src/"), "immutag")
         };
 
         assert_eq!(result.is_ok(), false);
@@ -847,16 +847,16 @@ metadata = "Tells git which files to ignore."
     }
 
     #[test]
-    fn error_metadatafile_delete_dir_entry() {
-        let path = ".metadata/.metadata_tests";
-        let gpath = ".metadata/.metadata_tests/Metadata";
+    fn error_immutagfile_delete_dir_entry() {
+        let path = ".immutag/.immutag_tests";
+        let gpath = ".immutag/.immutag_tests/Immutag";
         let mut fixture = setup_test(path, "0.1.0", "NAME", "AUTHOR", "0.1.0");
         let doc = open(gpath).unwrap();
-        let doc = add_entry(&doc, Some("src/"), "metadata", "The source code.").unwrap();
+        let doc = add_entry(&doc, Some("src/"), "immutag", "The source code.").unwrap();
         write(doc.clone(), gpath).expect("failed to write toml to disk");
-        let metadata_res = metadata(&doc, Some("src/"), "metadata").unwrap();
+        let immutag_res = immutag(&doc, Some("src/"), "immutag").unwrap();
 
-        assert_eq!(metadata_res, "The source code.");
+        assert_eq!(immutag_res, "The source code.");
 
         // Focus of test.
         let doc = open(gpath).unwrap();
@@ -864,7 +864,7 @@ metadata = "Tells git which files to ignore."
 
         match doc {
             Err(err) => match err {
-                MetadataFileError::Error(e) => assert_eq!(ErrorKind::InvalidKey, e.kind),
+                ImmutagFileError::Error(e) => assert_eq!(ErrorKind::InvalidKey, e.kind),
                 _ => panic!("wrong error type"),
             },
             _ => panic!("expected an error"),

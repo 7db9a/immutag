@@ -12,7 +12,7 @@ pub struct Fixture {
 }
 
 /// Create directories, files, and tear them down at will.
-/// Used throughout git_metadata crates for testing purposes.
+/// Used throughout immutag crates for testing purposes.
 /// See tests directories of said crates for examples.
 impl Fixture {
     pub fn new() -> Fixture {
@@ -90,7 +90,7 @@ impl Fixture {
     }
 
     /// Teardown everything.
-    /// At the moment, it's really only suited for tearing down all the files, except the .metadata dir itself.
+    /// At the moment, it's really only suited for tearing down all the files, except the .immutag dir itself.
     /// However, more fine grained control can be added within this method.
     /// For example, teardown could take a Vec of paths to delete.
     pub fn teardown(
@@ -188,7 +188,7 @@ impl<'a> Entry for &'a DirEntry {
     }
 }
 
-/// Forces a stringly typed path to always be in a file convention for Metadata file.
+/// Forces a stringly typed path to always be in a file convention for Immutag file.
 pub fn filefy(name: String) -> String {
     let path_name = Path::new(&name);
     let mut name = windows_to_unix_path_string(&path_name).unwrap();
@@ -208,7 +208,7 @@ pub fn filefy(name: String) -> String {
     }
 }
 
-/// Forces a stringly typed path to always be in a dir convention for Metadata file.
+/// Forces a stringly typed path to always be in a dir convention for Immutag file.
 pub fn directorate(name: String) -> String {
     let path_name = Path::new(&name);
     let mut name = windows_to_unix_path_string(&path_name).unwrap();
