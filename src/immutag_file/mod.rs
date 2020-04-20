@@ -24,7 +24,7 @@ pub enum ImmutagFileState {
 /// Creates a Immutag file with basic info.
 pub fn init<T: AsRef<str>>(path: T, version: T, name: T, author: T) {
     let toml = format!(
-        r#"['about']
+        r#"['immutag']
 version = "{}"
 name = "{}"
 author = "{}""#,
@@ -58,9 +58,9 @@ pub fn write<T: AsRef<str>>(toml_doc: Document, path: T) -> Result<(), ImmutagFi
 /// toml value into method, that other fields can be validated.
 pub fn is_valid(doc: &Document) -> ImmutagFileState {
     let mut valid: ImmutagFileState;
-    let version = entry_exists(&doc, "about", Some("version"));
-    let name = entry_exists(&doc, "about", Some("name"));
-    let author = entry_exists(&doc, "about", Some("author"));
+    let version = entry_exists(&doc, "immutag", Some("version"));
+    let name = entry_exists(&doc, "immutag", Some("name"));
+    let author = entry_exists(&doc, "immutag", Some("author"));
 
     if version {
         valid = ImmutagFileState::Valid;
@@ -225,7 +225,7 @@ pub fn add_entry<T: AsRef<str>>(
         let err = Error::new("immutag file doesn't exist", ErrorKind::NoFile);
         Err(ImmutagFileError::from(err))
     } else if file_name.is_none() {
-        let entry_exists = entry_exists(&doc, "about", Some(name.as_ref()));
+        let entry_exists = entry_exists(&doc, "immutag", Some(name.as_ref()));
         if !entry_exists {
             insert_entry(&doc, None, name.as_ref(), immutag.as_ref())
         } else {
@@ -283,9 +283,9 @@ pub fn update_entry<T: AsRef<str>>(
             Err(ImmutagFileError::from(err))
         }
     } else {
-        let entry_exists = entry_exists(&doc, "about", Some(name.as_ref()));
+        let entry_exists = entry_exists(&doc, "immutag", Some(name.as_ref()));
         if entry_exists {
-            insert_entry(&doc, Some("about"), name.as_ref(), immutag.as_ref())
+            insert_entry(&doc, Some("immutag"), name.as_ref(), immutag.as_ref())
         } else {
             let err = Error::new(
                 "file entry doesn't exist in immutag file",
@@ -443,7 +443,7 @@ version = "0.0.1"
 
     #[test]
     fn toml_append() {
-        let immutag_fields = r#"['about']
+        let immutag_fields = r#"['immutag']
 version = "0.1.0"
 name = "NAME"
 author = "AUTHOR""#;
@@ -458,7 +458,7 @@ author = "AUTHOR""#;
 immutag = "The libraries entry point."
 version = "0.0.1""#;
 
-        let expected = r#"['about']
+        let expected = r#"['immutag']
 version = "0.1.0"
 name = "NAME"
 author = "AUTHOR"
@@ -525,7 +525,7 @@ mod integration {
         let doc = open(gpath).unwrap();
         let is_valid = is_valid(&doc);
         let doc = open(gpath).unwrap();
-        let expected = r#"['about']
+        let expected = r#"['immutag']
 version = "0.1.0"
 name = "NAME"
 author = "AUTHOR"
@@ -600,7 +600,7 @@ author = "AUTHOR"
 
         //let mut doc = toml_string.parse::<Document>().expect("failed to get toml doc");
         //doc["src/lib.rs"].as_inline_table_mut().map(|t| t.fmt());
-        let expected = r#"['about']
+        let expected = r#"['immutag']
 version = "0.1.0"
 name = "NAME"
 author = "AUTHOR"
@@ -693,7 +693,7 @@ immutag = "Entry point to the library."
         let new_doc = delete_entry(doc, "README.md").unwrap();
         write(new_doc.clone(), gpath).expect("failed to write toml to disk");
 
-        let expected = r#"['about']
+        let expected = r#"['immutag']
 version = "0.1.0"
 name = "NAME"
 author = "AUTHOR"
@@ -750,7 +750,7 @@ immutag = "Entry point to the library."
 
         write(modified_doc, path.to_string() + "/Immutag").expect("failed to write toml to disk");
 
-        let expected = r#"['about']
+        let expected = r#"['immutag']
 version = "0.2.0"
 name = "NAME"
 author = "CHANGED_AUTHOR"
