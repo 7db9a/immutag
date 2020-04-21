@@ -10,6 +10,7 @@ mod  bitcoin_integration {
     use sv::network::Network;
     use ring::digest::SHA512;
     use ring::hmac;
+    use std::str;
 
     fn master_private_key(seed: &str) -> ExtendedKey {
         let seed = hex::decode(seed).unwrap();
@@ -33,7 +34,14 @@ mod  bitcoin_integration {
        let w = wallet::Wordlist::English;
        let wordlist = wallet::load_wordlist(w);
        let m = ["legal".to_string(), "winner".to_string(), "thank".to_string(), "year".to_string(), "wave".to_string(), "sausage".to_string(), "worth".to_string(), "useful".to_string(), "legal".to_string(), "winner".to_string(), "thank".to_string(), "yellow".to_string()];
-       wallet::mnemonic_decode(&m, &wordlist).unwrap();
+       let data: &Vec<u8> = &wallet::mnemonic_decode(&m, &wordlist).unwrap();
+
+       let seed = match str::from_utf8(data) {
+           Ok(v) => v,
+           Err(e) => panic!("Invalid UTF-8 sequence: {}", e),
+       };
+
+       let xpriv = master_private_key(seed);
 
        assert_eq!(true, false);
    }
