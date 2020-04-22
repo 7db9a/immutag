@@ -69,7 +69,8 @@ mod  bitcoin_integration {
        let data: &Vec<u8> = &wallet::mnemonic_decode(&m, &wordlist).unwrap();
 
        let m = master_private_key(data);
-       let key = m.private_key().unwrap();
+       let privkey = m.private_key().unwrap();
+       let pubkey = m.public_key().unwrap();
        //println!("xpriv: {:#?}", xpriv);
 
        //let seed = match str::from_utf8(&data) {
@@ -77,14 +78,22 @@ mod  bitcoin_integration {
        //    Err(e) => panic!("Invalid UTF-8 sequence: {}", e),
        //};
 
-       let valid_privkey: bool = is_private_key_valid(&key);
+       let valid_privkey: bool = is_private_key_valid(&privkey);
 
-       let xpriv = wallet::derive_extended_key(&m, "m").unwrap().encode();
+       let xpriv = wallet::derive_extended_key(&m, "m").unwrap();
+       let xpriv_string = xpriv.encode();
 
+       let xpub = wallet::derive_extended_key(&m, "m").unwrap();
+       let xpub_string = xpriv.extended_public_key().unwrap().encode();
+
+       // Double checked by getting the xpub from the xpriv using moneybutton's bsv in nodejs.
        let expected_xpriv = "xprv9s21ZrQH143K29TJGFSiEAAQM8SMBH2V6x5Aaf9bqvXftrs1v274STWWKfz8svukBLGEQgWqkgRhpt2CNFY89CFaqdsA3gicZeqexk2itxf";
+       let expected_xpub = "xpub661MyMwAqRbcEdXmNGyibJ78uAGqajkLUAzmP3ZDQG4emfCATZRJzFpzAxQRUsGxfvEEpTKBusBe42vEkdA1JTtevFo1f2JFDrqP5ui6syN";
 
        assert_eq!(true, valid_privkey);
 
-       assert_eq!(xpriv, expected_xpriv);
+       assert_eq!(xpriv_string, expected_xpriv);
+
+       assert_eq!(xpub_string, expected_xpub);
    }
 }
