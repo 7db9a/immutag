@@ -12,6 +12,12 @@ mod  bitcoin_integration {
     use ring::hmac;
     use std::str;
 
+    /// Maximum private key value (exclusive)
+    const SECP256K1_CURVE_ORDER: [u8; 32] = [
+        0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xfe,
+        0xba, 0xae, 0xdc, 0xe6, 0xaf, 0x48, 0xa0, 0x3b, 0xbf, 0xd2, 0x5e, 0x8c, 0xd0, 0x36, 0x41, 0x41,
+    ];
+
     fn master_private_key(seed: &Vec<u8>) -> ExtendedKey {
         //let seed = hex::decode(data).unwrap();
         let key = "Bitcoin seed".to_string();
@@ -27,7 +33,28 @@ mod  bitcoin_integration {
         )
         .unwrap()
     }
-
+   /// Checks that a private key is in valid SECP256K1 range
+   fn is_private_key_valid(key: &[u8]) -> bool {
+       let mut is_below_order = false;
+       if key.len() != 32 {
+           return false;
+       }
+       for i in 0..32 {
+           if key[i] < SECP256K1_CURVE_ORDER[i] {
+               is_below_order = true;
+               break;
+           }
+       }
+       if !is_below_order {
+           return false;
+       }
+       for i in 0..32 {
+           if key[i] != 0 {
+               return true;
+           }
+       }
+       return false;
+   }
 
    #[test]
    fn mnemonic_to_xpriv() {
@@ -42,14 +69,16 @@ mod  bitcoin_integration {
        let data: &Vec<u8> = &wallet::mnemonic_decode(&m, &wordlist).unwrap();
 
        let key = master_private_key(data);
-       let private_key = key.private_key().unwrap();
-       println!("xpriv: {:#?}", private_key);
+       let xpriv = key.private_key().unwrap();
+       //println!("xpriv: {:#?}", xpriv);
 
        //let seed = match str::from_utf8(&data) {
        //    Ok(v) => v,
        //    Err(e) => panic!("Invalid UTF-8 sequence: {}", e),
        //};
 
-       assert_eq!(true, false);
+       let valid_privkey: bool = is_private_key_valid(&xpriv);
+
+       assert_eq!(true, valid_privkey);
    }
 }
