@@ -68,8 +68,8 @@ mod  bitcoin_integration {
 
        let data: &Vec<u8> = &wallet::mnemonic_decode(&m, &wordlist).unwrap();
 
-       let key = master_private_key(data);
-       let xpriv = key.private_key().unwrap();
+       let m = master_private_key(data);
+       let key = m.private_key().unwrap();
        //println!("xpriv: {:#?}", xpriv);
 
        //let seed = match str::from_utf8(&data) {
@@ -77,8 +77,14 @@ mod  bitcoin_integration {
        //    Err(e) => panic!("Invalid UTF-8 sequence: {}", e),
        //};
 
-       let valid_privkey: bool = is_private_key_valid(&xpriv);
+       let valid_privkey: bool = is_private_key_valid(&key);
+
+       let xpriv = wallet::derive_extended_key(&m, "m").unwrap().encode();
+
+       let expected_xpriv = "xprv9s21ZrQH143K29TJGFSiEAAQM8SMBH2V6x5Aaf9bqvXftrs1v274STWWKfz8svukBLGEQgWqkgRhpt2CNFY89CFaqdsA3gicZeqexk2itxf";
 
        assert_eq!(true, valid_privkey);
+
+       assert_eq!(xpriv, expected_xpriv);
    }
 }
