@@ -2,59 +2,61 @@ extern crate sv;
 extern crate ring;
 extern crate hex;
 
+use sv::wallet;
+use wallet::ExtendedKey;
+use sv::network::Network;
+use ring::digest::SHA512;
+use ring::hmac;
+use std::str;
+
+/// Maximum private key value (exclusive)
+const SECP256K1_CURVE_ORDER: [u8; 32] = [
+    0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xfe,
+    0xba, 0xae, 0xdc, 0xe6, 0xaf, 0x48, 0xa0, 0x3b, 0xbf, 0xd2, 0x5e, 0x8c, 0xd0, 0x36, 0x41, 0x41,
+];
+
+fn master_private_key(seed: &Vec<u8>) -> ExtendedKey {
+    //let seed = hex::decode(data).unwrap();
+    let key = "Bitcoin seed".to_string();
+    let key = hmac::SigningKey::new(&SHA512, &key.as_bytes());
+    let hmac = hmac::sign(&key, &seed);
+    ExtendedKey::new_private_key(
+        Network::Mainnet,
+        0,
+        &[0; 4],
+        0,
+        &hmac.as_ref()[32..],
+        &hmac.as_ref()[0..32],
+    )
+    .unwrap()
+}
+
+/// Checks that a private key is in valid SECP256K1 range
+fn is_private_key_valid(key: &[u8]) -> bool {
+    let mut is_below_order = false;
+    if key.len() != 32 {
+        return false;
+    }
+    for i in 0..32 {
+        if key[i] < SECP256K1_CURVE_ORDER[i] {
+            is_below_order = true;
+            break;
+        }
+    }
+    if !is_below_order {
+        return false;
+    }
+    for i in 0..32 {
+        if key[i] != 0 {
+            return true;
+        }
+    }
+    return false;
+}
+
 #[cfg(test)]
 mod  bitcoin_integration {
-    use super::{sv, ring, hex};
-    use sv::wallet;
-    use wallet::ExtendedKey;
-    use sv::network::Network;
-    use ring::digest::SHA512;
-    use ring::hmac;
-    use std::str;
-
-    /// Maximum private key value (exclusive)
-    const SECP256K1_CURVE_ORDER: [u8; 32] = [
-        0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xfe,
-        0xba, 0xae, 0xdc, 0xe6, 0xaf, 0x48, 0xa0, 0x3b, 0xbf, 0xd2, 0x5e, 0x8c, 0xd0, 0x36, 0x41, 0x41,
-    ];
-
-    fn master_private_key(seed: &Vec<u8>) -> ExtendedKey {
-        //let seed = hex::decode(data).unwrap();
-        let key = "Bitcoin seed".to_string();
-        let key = hmac::SigningKey::new(&SHA512, &key.as_bytes());
-        let hmac = hmac::sign(&key, &seed);
-        ExtendedKey::new_private_key(
-            Network::Mainnet,
-            0,
-            &[0; 4],
-            0,
-            &hmac.as_ref()[32..],
-            &hmac.as_ref()[0..32],
-        )
-        .unwrap()
-    }
-   /// Checks that a private key is in valid SECP256K1 range
-   fn is_private_key_valid(key: &[u8]) -> bool {
-       let mut is_below_order = false;
-       if key.len() != 32 {
-           return false;
-       }
-       for i in 0..32 {
-           if key[i] < SECP256K1_CURVE_ORDER[i] {
-               is_below_order = true;
-               break;
-           }
-       }
-       if !is_below_order {
-           return false;
-       }
-       for i in 0..32 {
-           if key[i] != 0 {
-               return true;
-           }
-       }
-       return false;
-   }
+    use super::*;
 
    #[test]
    fn mnemonic_to_xpriv() {
