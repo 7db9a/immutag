@@ -1,3 +1,0 @@
-[submodule "bsv"]
-	path = bsv
-	url = https://github.com/moneybutton/bsv.git
