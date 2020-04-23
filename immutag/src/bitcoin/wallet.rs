@@ -108,7 +108,7 @@ impl fmt::Display for ExtendedPublicKey {
 }
 
 #[cfg(test)]
-mod  bitcoin_integration {
+mod  wallet_integration {
     use super::{
         sv_wallet::Wordlist,
         Language,
