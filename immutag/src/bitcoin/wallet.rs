@@ -22,23 +22,19 @@ pub enum Language {
 }
 
 pub fn mnemonic_to_xpriv(mnemonic: Vec<String>, language: Language) -> ExtendedPrivateKey {
-    let wordlist = match language {
-        Language::ChineseSimplified => sv_wallet::Wordlist::ChineseSimplified,
-        Language::ChineseTraditional => sv_wallet::Wordlist::ChineseTraditional,
-        Language::English => sv_wallet::Wordlist::English,
-        Language::French => sv_wallet::Wordlist::French,
-        Language::Italian => sv_wallet::Wordlist::Italian,
-        Language::Japanese => sv_wallet::Wordlist::Japanese,
-        Language::Korean => sv_wallet::Wordlist::Korean,
-        Language::Spanish => sv_wallet::Wordlist::Spanish,
-    };
-    let key = immutag_bitcoin::mnemonic_to_xpriv(mnemonic, wordlist);
-    //let xpub_string = key.extended_public_key().unwrap().encode();
+    let key = mnemonic_to_xkey(mnemonic, language);
 
     ExtendedPrivateKey(key.encode())
 }
 
 pub fn mnemonic_to_xpub(mnemonic: Vec<String>, language: Language) -> ExtendedPublicKey {
+    let key = mnemonic_to_xkey(mnemonic, language);
+    let xpub_str= key.extended_public_key().unwrap().encode();
+
+    ExtendedPublicKey(xpub_str)
+}
+
+pub fn mnemonic_to_xkey(mnemonic: Vec<String>, language: Language) -> sv_wallet::ExtendedKey {
     let wordlist = match language {
         Language::ChineseSimplified => sv_wallet::Wordlist::ChineseSimplified,
         Language::ChineseTraditional => sv_wallet::Wordlist::ChineseTraditional,
@@ -49,10 +45,8 @@ pub fn mnemonic_to_xpub(mnemonic: Vec<String>, language: Language) -> ExtendedPu
         Language::Korean => sv_wallet::Wordlist::Korean,
         Language::Spanish => sv_wallet::Wordlist::Spanish,
     };
-    let key = immutag_bitcoin::mnemonic_to_xpriv(mnemonic, wordlist);
-    let xpub_str= key.extended_public_key().unwrap().encode();
 
-    ExtendedPublicKey(xpub_str)
+    immutag_bitcoin::mnemonic_to_xpriv(mnemonic, wordlist)
 }
 
 #[cfg(test)]
