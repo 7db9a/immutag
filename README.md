@@ -57,12 +57,13 @@ Immutag searches for an "immutag-file" in the current directory.
 version = "0.1.0"
 
 ['1LrTstQYNZj8wCvBgipJqL9zghsofpsHEG']
-xpriv = "XPRIV"
-mnemonic "MNEMONIC"
+xpriv = "xprv9s21ZrQH143K29TJGFSiEAAQM8SMBH2V6x5Aaf9bqvXftrs1v274STWWKfz8svukBLGEQgWqkgRhpt2CNFY89CFaqdsA3gicZeqexk2itxf"
+mnemonic = "certain dust pave crane renew multiply stone stuff proud flee fancy knee"
+
 
 ['1JvFXyZMC31ShnD8PSKgN1HKQ2kGQLVpCt']
-xpriv = "XPRIV"
-mnemonic "MNEMONIC"
+xpriv = "xprv9s21ZrQH143K3w3ZiXq14u2Ln2xp5wLjSmx8ypGrvhZ7rS7TKuFeQCviiwy1ULB51tkzWwbqHPFSBwyPJnFXkvH6U1RBgqaBeMEPJ4QZ9ov"
+mnemonic ""legal winner thank year wave sausage worth useful legal winner thank yellow"
 ```
 
 Each entry is a complete fileystem with potentially many respective files.
