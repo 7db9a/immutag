@@ -1,0 +1,18 @@
+[package]
+name = "immutag"
+version = "0.1.0"
+authors = ["7db9a"]
+edition = "2018"
+
+[[bin]]
+name = "immutag"
+path = "src/bin/main.rs"
+doc = false
+
+[lib]
+name = "immutag"
+path = "src/mod.rs"
+
+[dependencies]
+immutag-bitcoin = { path = "../immutag-bitcoin" }
+immutag-file = { path = "../immutag-file" }
