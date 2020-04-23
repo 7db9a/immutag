@@ -1,27 +1,125 @@
-pub mod bitcoin;
+use std::fmt;
+use std::str::FromStr;
+use immutag_bitcoin;
+use immutag_file;
+use immutag_bitcoin::sv_wallet;
+use immutag_bitcoin::is_private_key_valid;
 
-use bitcoin::wallet;
-use wallet::{ Language, ExtendedPrivateKey, ExtendedPublicKey };
+pub use sv_wallet::ExtendedKey as ExtendedKey;
+
+#[derive(Debug, PartialEq, Clone)]
+pub struct ExtendedPrivateKey {
+    value: String
+}
+
+#[derive(Debug, PartialEq, Clone)]
+pub struct ExtendedPublicKey {
+    value: String
+}
+
+/// Language of bitcoin wordlist
+pub enum Language {
+    ChineseSimplified,
+    ChineseTraditional,
+    English,
+    French,
+    Italian,
+    Japanese,
+    Korean,
+    Spanish,
+}
 
 pub fn mnemonic_to_xpriv(mnemonic: Vec<String>, language: Language) -> ExtendedPrivateKey {
-    wallet::mnemonic_to_xpriv(mnemonic, language)
+    let key = mnemonic_to_xkey(mnemonic, language);
+    let xpriv: ExtendedPrivateKey = key.encode().parse().unwrap();
+
+    xpriv
 }
 
 pub fn mnemonic_to_xpub(mnemonic: Vec<String>, language: Language) -> ExtendedPublicKey {
-    wallet::mnemonic_to_xpub(mnemonic, language)
+    let key = mnemonic_to_xkey(mnemonic, language);
+    let xpub_str = key.extended_public_key().unwrap().encode();
+    let xpub: ExtendedPublicKey = xpub_str.parse().unwrap();
+
+    xpub
 }
 
+pub fn mnemonic_to_xkey(mnemonic: Vec<String>, language: Language) -> sv_wallet::ExtendedKey {
+    let wordlist = match language {
+        Language::ChineseSimplified => sv_wallet::Wordlist::ChineseSimplified,
+        Language::ChineseTraditional => sv_wallet::Wordlist::ChineseTraditional,
+        Language::English => sv_wallet::Wordlist::English,
+        Language::French => sv_wallet::Wordlist::French,
+        Language::Italian => sv_wallet::Wordlist::Italian,
+        Language::Japanese => sv_wallet::Wordlist::Japanese,
+        Language::Korean => sv_wallet::Wordlist::Korean,
+        Language::Spanish => sv_wallet::Wordlist::Spanish,
+    };
+
+    immutag_bitcoin::mnemonic_to_xpriv(mnemonic, wordlist)
+}
+
+// Doesn't do anything, yet.
+fn key_validation(data: &[u8]) -> bool {
+     true
+}
+
+impl FromStr for ExtendedPrivateKey {
+    type Err = ();
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        if key_validation(s.as_bytes()) {
+            Ok(ExtendedPrivateKey {
+                value: s.to_string()
+            })
+        } else {
+            Err(())
+        }
+
+    }
+}
+
+impl FromStr for ExtendedPublicKey {
+    type Err = ();
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        if key_validation(s.as_bytes()) {
+            Ok(ExtendedPublicKey {
+                value: s.to_string()
+            })
+        } else {
+            Err(())
+        }
+    }
+}
+
+impl fmt::Display for ExtendedPrivateKey {
+    fn fmt(&self, fmt: &mut fmt::Formatter) -> fmt::Result {
+        let str = self.value.as_ref();
+        fmt.write_str(str)
+    }
+}
+
+impl fmt::Display for ExtendedPublicKey {
+    fn fmt(&self, fmt: &mut fmt::Formatter) -> fmt::Result {
+        let str = self.value.as_ref();
+        fmt.write_str(str)
+    }
+}
 
 #[cfg(test)]
-mod  bitcoin_integration {
+mod  wallet_integration {
     use super::{
+        sv_wallet::Wordlist,
+        Language,
+        sv_wallet::ExtendedKey,
+        immutag_bitcoin::is_private_key_valid,
+        immutag_bitcoin::master_private_key,
         mnemonic_to_xpriv,
         mnemonic_to_xpub,
         ExtendedPrivateKey,
         ExtendedPublicKey,
-        Language,
     };
-
 
     #[test]
     fn test_mnemonic_to_xpriv() {
@@ -51,3 +149,4 @@ mod  bitcoin_integration {
         assert_eq!(xpub, expected_xpub)
     }
 }
+
