@@ -2,12 +2,15 @@ extern crate sv;
 extern crate ring;
 extern crate hex;
 
-pub use sv::wallet;
-pub use sv::wallet::Wordlist;
-pub use wallet::ExtendedKey;
-pub use sv::network::Network;
+use sv::network::Network;
+use sv::wallet;
+use sv::wallet::Wordlist;
+use sv::wallet::ExtendedKey;
 use ring::digest::SHA512;
 use ring::hmac;
+
+pub use sv::wallet as sv_wallet;
+pub use sv::network as sv_network;
 
 /// Maximum private key value (exclusive)
 const SECP256K1_CURVE_ORDER: [u8; 32] = [
@@ -63,7 +66,7 @@ pub fn mnemonic_to_xpriv(mnemonic: Vec<String>, wordlist: Wordlist) -> ExtendedK
 }
 
 #[cfg(test)]
-mod  bitcoin_integration {
+mod  bitcoin {
     use super::{
         sv::wallet,
         sv::wallet::Wordlist,
