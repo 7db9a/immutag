@@ -2,10 +2,10 @@ extern crate sv;
 extern crate ring;
 extern crate hex;
 
-use sv::wallet;
-use sv::wallet::Wordlist;
-use wallet::ExtendedKey;
-use sv::network::Network;
+pub use sv::wallet;
+pub use sv::wallet::Wordlist;
+pub use wallet::ExtendedKey;
+pub use sv::network::Network;
 use ring::digest::SHA512;
 use ring::hmac;
 
@@ -15,7 +15,7 @@ const SECP256K1_CURVE_ORDER: [u8; 32] = [
     0xba, 0xae, 0xdc, 0xe6, 0xaf, 0x48, 0xa0, 0x3b, 0xbf, 0xd2, 0x5e, 0x8c, 0xd0, 0x36, 0x41, 0x41,
 ];
 
-fn master_private_key(seed: &Vec<u8>) -> ExtendedKey {
+pub fn master_private_key(seed: &Vec<u8>) -> ExtendedKey {
     //let seed = hex::decode(data).unwrap();
     let key = "Bitcoin seed".to_string();
     let key = hmac::SigningKey::new(&SHA512, &key.as_bytes());
@@ -32,7 +32,7 @@ fn master_private_key(seed: &Vec<u8>) -> ExtendedKey {
 }
 
 /// Checks that a private key is in valid SECP256K1 range
-fn is_private_key_valid(key: &[u8]) -> bool {
+pub fn is_private_key_valid(key: &[u8]) -> bool {
     let mut is_below_order = false;
     if key.len() != 32 {
         return false;
@@ -54,7 +54,7 @@ fn is_private_key_valid(key: &[u8]) -> bool {
     return false;
 }
 
-fn mnemonic_to_xpriv(mnemonic: Vec<String>, wordlist: Wordlist) -> ExtendedKey {
+pub fn mnemonic_to_xpriv(mnemonic: Vec<String>, wordlist: Wordlist) -> ExtendedKey {
     let w = wallet::load_wordlist(wordlist);
     let data: &Vec<u8> = &wallet::mnemonic_decode(&mnemonic, &w).unwrap();
     let m = master_private_key(data);
@@ -75,8 +75,6 @@ mod  bitcoin_integration {
         master_private_key,
         mnemonic_to_xpriv
     };
-
-    use std::str;
 
     #[test]
     fn test_mnemonic_to_xpriv() {
