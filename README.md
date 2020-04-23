@@ -28,7 +28,7 @@ The following applications and technologies may prove useful:
 
 * tmsu - local virtual filesytem with tag-based view
 
-Each file is an address in a bitcoin HD wallet. The file is a directory on the device. A git directory is named after the file's bitcoin address.
+You can have many filesystems. They're all in the `immutag` direcotry. Each filesystem is named after the first address in a bitcoin HD wallet. A git directory is named after the file's bitcoin address.
 
 ```
 immutag
