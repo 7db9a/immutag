@@ -1,13 +1,21 @@
+use std::fmt;
+use std::str::FromStr;
 use immutag_bitcoin;
 use immutag_file;
 use immutag_bitcoin::sv_wallet;
+use immutag_bitcoin::is_private_key_valid;
 
 pub use sv_wallet::ExtendedKey as ExtendedKey;
 
-#[derive(Clone, Debug, PartialEq)]
-pub struct ExtendedPrivateKey(String);
-#[derive(Clone, Debug, PartialEq)]
-pub struct ExtendedPublicKey(String);
+#[derive(Debug, PartialEq, Clone)]
+pub struct ExtendedPrivateKey {
+    value: String
+}
+
+#[derive(Debug, PartialEq, Clone)]
+pub struct ExtendedPublicKey {
+    value: String
+}
 
 /// Language of bitcoin wordlist
 pub enum Language {
@@ -23,15 +31,17 @@ pub enum Language {
 
 pub fn mnemonic_to_xpriv(mnemonic: Vec<String>, language: Language) -> ExtendedPrivateKey {
     let key = mnemonic_to_xkey(mnemonic, language);
+    let xpriv: ExtendedPrivateKey = key.encode().parse().unwrap();
 
-    ExtendedPrivateKey(key.encode())
+    xpriv
 }
 
 pub fn mnemonic_to_xpub(mnemonic: Vec<String>, language: Language) -> ExtendedPublicKey {
     let key = mnemonic_to_xkey(mnemonic, language);
-    let xpub_str= key.extended_public_key().unwrap().encode();
+    let xpub_str = key.extended_public_key().unwrap().encode();
+    let xpub: ExtendedPublicKey = xpub_str.parse().unwrap();
 
-    ExtendedPublicKey(xpub_str)
+    xpub
 }
 
 pub fn mnemonic_to_xkey(mnemonic: Vec<String>, language: Language) -> sv_wallet::ExtendedKey {
@@ -47,6 +57,54 @@ pub fn mnemonic_to_xkey(mnemonic: Vec<String>, language: Language) -> sv_wallet:
     };
 
     immutag_bitcoin::mnemonic_to_xpriv(mnemonic, wordlist)
+}
+
+// Doesn't do anything, yet.
+fn key_validation(data: &[u8]) -> bool {
+     true
+}
+
+impl FromStr for ExtendedPrivateKey {
+    type Err = ();
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        if key_validation(s.as_bytes()) {
+            Ok(ExtendedPrivateKey {
+                value: s.to_string()
+            })
+        } else {
+            Err(())
+        }
+
+    }
+}
+
+impl FromStr for ExtendedPublicKey {
+    type Err = ();
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        if key_validation(s.as_bytes()) {
+            Ok(ExtendedPublicKey {
+                value: s.to_string()
+            })
+        } else {
+            Err(())
+        }
+    }
+}
+
+impl fmt::Display for ExtendedPrivateKey {
+    fn fmt(&self, fmt: &mut fmt::Formatter) -> fmt::Result {
+        let str = self.value.as_ref();
+        fmt.write_str(str)
+    }
+}
+
+impl fmt::Display for ExtendedPublicKey {
+    fn fmt(&self, fmt: &mut fmt::Formatter) -> fmt::Result {
+        let str = self.value.as_ref();
+        fmt.write_str(str)
+    }
 }
 
 #[cfg(test)]
@@ -74,8 +132,11 @@ mod  bitcoin_integration {
         let expected_xpriv = "xprv9s21ZrQH143K29TJGFSiEAAQM8SMBH2V6x5Aaf9bqvXftrs1v274STWWKfz8svukBLGEQgWqkgRhpt2CNFY89CFaqdsA3gicZeqexk2itxf";
         let expected_xpub = "xpub661MyMwAqRbcEdXmNGyibJ78uAGqajkLUAzmP3ZDQG4emfCATZRJzFpzAxQRUsGxfvEEpTKBusBe42vEkdA1JTtevFo1f2JFDrqP5ui6syN";
 
-        assert_eq!(xpriv, ExtendedPrivateKey(expected_xpriv.to_string()));
-        assert_eq!(xpub, ExtendedPublicKey(expected_xpub.to_string()));
+        let expected_xpriv: ExtendedPrivateKey = expected_xpriv.parse().unwrap();
+        let expected_xpub: ExtendedPublicKey = expected_xpub.parse().unwrap();
+
+        assert_eq!(xpriv, expected_xpriv);
+        assert_eq!(xpub, expected_xpub)
     }
 }
 
