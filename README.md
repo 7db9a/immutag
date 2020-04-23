@@ -43,12 +43,14 @@ immutag
 $ cat 1LrTstQYNZj8wCvBgipJqL9zghsofpsHEG/immmutag-store
 
 ```
-# IPFS-ADDR: TAGS, METADATA
+# BITCOIN-ADDR: IPFS-ADDR, TAGS, METADATA
 
-QmeH81SYnASj5s91gQ22PdkYMgw45FD6kgrmBEU74Vp439: ["letter", "son"] , ""
-QmQPRexanRL6pnSPAzC696if49BviGaLNKvC3gp3ApPQmN: ["letter", "son", "advice" ] , "How to be good and just."
+1LrTstQYNZj8wCvBgipJqL9zghsofpsHEG: QmeH81SYnASj5s91gQ22PdkYMgw45FD6kgrmBEU74Vp439, ["letter", "son"] , ""
+n2DoUfi8oUkTALKdd3AvVeTTyWg1AQmXCD: QmQPRexanRL6pnSPAzC696if49BviGaLNKvC3gp3ApPQmN, "letter", "son", "advice" ], "How to be good and just."
 ```
-Each ipfs address corresponds to specific file version. Above, there are 2 file versions, representing a single mutable file. The above is for conceptual purposes and the file may look a lot different.
+Each bitcoin address corresponds to specific file version. Above, there are 2 file versions, representing a single mutable file. The above is for conceptual purposes and the file may look a lot different.
+
+Each version bticoin address is a child address of a Bitcoin hierarchical deterministic wallet. For more details, see [here](#file-versions).
 
 Immutag searches for an "immutag-file" in the current directory.
 
@@ -82,7 +84,7 @@ Collaborators can push and pull to the git repo. A user can reconstruct the git 
 
 ### File discovery services
 
-Users shouldn't be forced find immutags on bitcoin. Service providers should continuosly pull new immutags from the bitcoin network.  They can keep everything readily available in a database so that users can easily make queries.
+Users shouldn't be forced find immutags on bitcoin. Service providers should continuosly pull new immutags from the bitcoin network. They can keep everything readily available in a database so that users can easily make queries.
 
 ## Development
 
@@ -95,53 +97,56 @@ docker build immutag:0.1.0 .
 docker volume create --name=immutag-cargo-data-volume
 ```
 
-Install bsv. A bit awkward, but bear with for now.
-```
-docker run -it --name immutag -v $PWD:/immutag immutag:0.1.0
-cd bsv && npm install --save-dev --save-exact
-```
-
 ### Usage
 
-Entry point.
+Launch.
 
-`docker run -it --name immutag -v $PWD:/immutag immutag:0.1.0`
+`docker-compose up`
 
-Playing with [moneybutton's bsv library](#moneybuttons-bsv) at the moment.
+Test.
+
+`./dev.sh rust test`
+
+Test a specific case.
+
+`./dev.sh rust test $name`
 
 ## Workflow, sort of.
 
 There is no `immutag` app, yet. Just throwing ideas around.
 
-$ immutag new IPFS-ADDR
+Initializes immutag in the current directory by importing a mnemonic. Can also pass `--xpriv`. The user creates a wallet from a standard bitcoin wallet, then imports it here.
 
-Returns a bitcoin address, the first external one that is, which is immutable.
+`immutag init --mnemonic $MEMONIC`
 
-$ immutag update FIRST-ADDRESS IPFS-ADDR
+Returns a bitcoin address, the first external one that is, which is immutable. Each address represents a file.
+
+`immutag new IPFS-ADDR`
 
 Returns the latest external address if you update with a new file version.
 
-A tagging solution can be layered on top. For example, TMSU can be used. In this case, files are named after immutable address. TMSU is then used to tag those files.
-
-$ tmsu tag ADDRESS Faustina Afterlife
+`immutag update FIRST-ADDRESS IPFS-ADDR`
 
 To find that file.
 
-$ tmsu files video Faustina Afterlife
+`tmsu tag ADDRESS Faustina Afterlife`
 
 Returns immutable bitcoin addresses that correspond to tag 'video', 'Faustina', and 'Afterlife'.
 
-$ immutag FIRST-ADDRESS
+`tmsu files video Faustina Afterlife`
 
 Returns the latest ipfs address of the latest file version.
 
-$ ipfs cat $vidhash | mplayer -vo xv -
+`immutag FIRST-ADDRESS`
 
 Plays video, 'Saint Faustina's Visions of the Afterlife'.
 
-$ immutag ls FIRST-ADDRESS
+`ipfs cat $vidhash | mplayer -vo xv -`
 
 Returns all the IPFS addresses corresponding to the address, not just the most-recent.
+
+`immutag ls FIRST-ADDRESS`
+
 
 ## Handling directories or git projects.
 
@@ -187,7 +192,35 @@ For a file-discover service prototype.
 
 The file-system wallet is like "root" on unix-like operating systems. Each file is associated with a bitcoin address.
 
-These database data can be 'pegged' to the bitcoin network. See [here](#ipfs-pegs-on-bitcoin-network).
+The database data can be 'pegged' to the bitcoin network. See [here](#ipfs-pegs-on-bitcoin-network).
+
+The first BIP-44 external address is reserved for the filesystem 'root'. Subsequent addresses are each files.
+
+### File versions
+
+The file versions use `m / 144,000'` hardened addresses, which are 'synthetic' and not used directly on the bitcoin network. The file system uses `m /44'`, so each file gets a real bitcoin address.
+
+**The first file**
+
+m / 44' / 0' / 0' / 0 / 1
+
+**... and its first version.**
+
+m / 144,000' / 1' / 0' / 0 / 0
+
+**The second file**
+
+m / 44' / 0' / 0' / 0 / 2
+
+**... and its 3 versions.**
+
+m / 144,000' / 2' / 0' / 0 / 0
+
+m / 144,000' / 2' / 0' / 0 / 1
+
+m / 144,000' / 2' / 0' / 0 / 2
+
+`m / 144,000'` addresses are 'second layer'. At the moment, the described [pegging](#ipfs-pegs-on-bitcoin-network) with ipfs is the second layer. Perhaps some other protocol, cheaper than bitcoin, can be dropped-in for file versioning in the future.
 
 ### BIP 32 - bitcoin hierarchical deterministic wallet
 
