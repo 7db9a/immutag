@@ -3,6 +3,7 @@ use immutag_local_files;
 //use limmutag_file::{};
 
 use immutag_local_files::{value, Document, ErrorKind, ImmutagFileError, ImmutagFileState, common, read_to_string};
+use common::Fixture;
 
 // init
 
@@ -18,8 +19,23 @@ use immutag_local_files::{value, Document, ErrorKind, ImmutagFileError, ImmutagF
 
 /// Creates a Immutag file with basic info.
 pub fn init<T: AsRef<str>>(path: T, version: T) {
-    immutag_local_files::init(path, version);
+    let fixture = Fixture::new()
+        .add_dirpath(path.as_ref().to_string())
+        .build();
+
+    let gpath = common::directorate(path.as_ref().to_string())+ "Immutag";
+
+    immutag_local_files::init(gpath, version.as_ref().to_string());
 }
+
+//pub set_filesystem<T: AsRef<str>>(
+//    bitcoin-addr: T,
+//    xpriv: T,
+//    mnemonic: T
+//) -> Result<String, ImmutagFileError> {
+//    open
+
+//}
 
 pub fn open<T: AsRef<str>>(path: T) -> Result<Document, ImmutagFileError> {
     immutag_local_files::open(path)
@@ -117,14 +133,19 @@ mod integration {
     fn immutagfile_init() {
         let path = ".immutag/.immutag_tests";
         let gpath = ".immutag/.immutag_tests/Immutag";
-        let mut fixture = setup_test(path, "0.1.0");
+
+        init(path, "0.1.0");
+
         let doc = open(gpath).unwrap();
         let is_valid = is_valid(&doc);
         let doc = open(gpath).unwrap();
         let expected = r#"['immutag']
 version = "0.1.0"
 "#;
-        fixture.teardown(true);
+        Fixture::new()
+            .add_dirpath(path.to_string())
+            .teardown(true);
+
         assert_eq!(is_valid, ImmutagFileState::Valid);
         assert_eq!(doc.to_string(), expected);
     }
