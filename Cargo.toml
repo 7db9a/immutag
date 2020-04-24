@@ -3,5 +3,5 @@
 members = [
     "immutag",
     "immutag-bitcoin",
-    "immutag-file"
+    "immutag-local-files"
 ]
