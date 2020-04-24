@@ -9,6 +9,7 @@ pub fn add_filesystem<T: AsRef<str>>(
     bitcoin_addr: T,
     xpriv: T
 ) {
+    immutag_file::add_filesystem(path, bitcoin_addr, xpriv);
 }
 
 // write(toml: String)
