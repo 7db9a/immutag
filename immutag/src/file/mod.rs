@@ -1,5 +1,5 @@
 use immutag_file;
-use immutag_file::{value, Document, ErrorKind, ImmutagFileError};
+use immutag_file::{value, Document, ErrorKind, ImmutagFileError, common};
 
 /// Creates a Immutag file with basic info.
 pub fn init<T: AsRef<str>>(path: T, version: T) {
