@@ -1,6 +1,18 @@
 use immutag_file;
 use immutag_file::{value, Document, ErrorKind, ImmutagFileError, ImmutagFileState, common, read_to_string};
 
+// init
+
+// set_filesystem(bitcoin-addr, xpriv, mnemonic)
+
+// write(toml: String)
+
+// get_xpriv
+
+// get_mnemonic
+
+// get_nickname
+
 /// Creates a Immutag file with basic info.
 pub fn init<T: AsRef<str>>(path: T, version: T) {
     immutag_file::init(path, version);
