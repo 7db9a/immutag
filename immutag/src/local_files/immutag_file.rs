@@ -257,8 +257,14 @@ xpriv = "XPRIV"
     fn immutagfile_entry_exists() {
         let path = ".immutag/.immutag_tests";
         let gpath = ".immutag/.immutag_tests/Immutag";
-        let mut fixture = setup_test(path, "0.1.0");
-        let (doc, _) = setup_add(gpath);
+        init(path, "0.1.0");
+        add_filesystem(
+            path,
+            "1LrTstQYNZj8wCvBgipJqL9zghsofpsHEG",
+            "XPRIV",
+        )
+        .unwrap();
+        let doc = open(gpath).unwrap();
 
         assert_eq!(entry_exists(&doc, "1LrTstQYNZj8wCvBgipJqL9zghsofpsHEG", None), true);
 
@@ -268,7 +274,9 @@ xpriv = "XPRIV"
 
         assert_eq!(exists(gpath, "NOT_REAL_BITCOIN_ADD_B"), false);
 
-        fixture.teardown(true);
+        Fixture::new()
+            .add_dirpath(path.to_string())
+            .teardown(true);
     }
 
     fn helper_immutagfile_delete_entry_thorough_check<T: AsRef<str>>(path_to_dir: T) {
