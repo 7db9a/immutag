@@ -10,7 +10,8 @@ pub mod common;
 use err::Error;
 pub use err::{ErrorKind, ImmutagFileError};
 
-use std::fs::{read_to_string, File};
+use std::fs::File;
+pub use std::fs::read_to_string;
 use std::io::Write; // Not sure why, but file.write_all doesn't work without it. Not explicit to me.
 
 /// Reveals the state of the Immutag file.
