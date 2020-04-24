@@ -3,7 +3,7 @@ This module manages the specifics of the Immutag file.
 */
 extern crate toml;
 extern crate toml_edit;
-use toml_edit::{value, Document};
+pub use toml_edit::{value, Document};
 
 pub mod err;
 pub mod common;
@@ -116,7 +116,7 @@ pub fn entry_exists<T: AsRef<str>>(doc: &Document, key: T, key_nested: Option<T>
     }
 }
 
-fn insert_entry<T: AsRef<str>>(
+pub fn insert_entry<T: AsRef<str>>(
     doc: &Document,
     file_name: Option<T>,
     key: T,
