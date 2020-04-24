@@ -40,10 +40,9 @@ pub fn add_filesystem<T: AsRef<str>>(
         Some(bitcoin_addr.as_ref()),
         "xpriv",
         xpriv.as_ref(),
-    )
-    .unwrap();
+    );
 
-    write(doc.clone(), gpath)
+    write(doc?, gpath)
 }
 
 pub fn open<T: AsRef<str>>(path: T) -> Result<Document, ImmutagFileError> {
@@ -192,21 +191,29 @@ version = "0.1.0"
     fn immutagfile_error_add_entry() {
         let path = ".immutag/.immutag_tests";
         let gpath = ".immutag/.immutag_tests/Immutag";
-        let mut fixture = setup_test(path, "0.1.0");
-        let (doc, immutag) = setup_add(gpath);
+        init(path, "0.1.0");
+        add_filesystem(
+            path,
+            "1LrTstQYNZj8wCvBgipJqL9zghsofpsHEG",
+            "XPRIV",
+        )
+        .unwrap();
+        let doc = open(gpath).unwrap();
 
-        // Focus of test.
-        let result = add_entry(
-            &doc,
-            Some("1LrTstQYNZj8wCvBgipJqL9zghsofpsHEG"),
-            "xpriv",
-            "XPRIV_OTHER",
+        let xpriv = immutag(&doc, Some("1LrTstQYNZj8wCvBgipJqL9zghsofpsHEG"), "xpriv").unwrap();
+
+        let add_again_res = add_filesystem(
+            path,
+            "1LrTstQYNZj8wCvBgipJqL9zghsofpsHEG",
+            "XPRIV-WRONG",
         );
 
-        fixture.teardown(true);
+        Fixture::new()
+            .add_dirpath(path.to_string())
+            .teardown(true);
 
-        assert_eq!(immutag.unwrap(), "XPRIV");
-        assert!(result.is_err());
+        assert_eq!(xpriv, "XPRIV");
+        assert!(add_again_res.is_err());
     }
 
 
@@ -276,17 +283,22 @@ xpriv = "XPRIV"
     }
 
     fn helper_immutagfile_delete_entry_thorough_check<T: AsRef<str>>(path_to_dir: T) {
-        let path = path_to_dir;
-        let gpath = path.as_ref().to_string() + "/Immutag";
-        let _fixture = setup_test(path.as_ref(), "0.1.0") ;
-
-        let (doc, _) = setup_add(gpath.as_str());
+        let path = ".immutag/.immutag_tests";
+        let gpath = ".immutag/.immutag_tests/Immutag";
+        init(path, "0.1.0");
+        add_filesystem(
+            path,
+            "1LrTstQYNZj8wCvBgipJqL9zghsofpsHEG",
+            "XPRIV",
+        )
+        .unwrap();
+        let doc = open(gpath).unwrap();
 
         let lib_exists = entry_exists(&doc, "1LrTstQYNZj8wCvBgipJqL9zghsofpsHEG", None);
 
         let doc = add_entry(&doc, Some("1JvFXyZMC31ShnD8PSKgN1HKQ2kGQLVpCt"), "xpriv", "XPRIV").unwrap();
 
-        write(doc.clone(), gpath.as_str()).expect("failed to write toml to disk");
+        write(doc.clone(), gpath).expect("failed to write toml to disk");
 
         let new_doc = delete_entry(doc, "1JvFXyZMC31ShnD8PSKgN1HKQ2kGQLVpCt").unwrap();
         write(new_doc.clone(), gpath).expect("failed to write toml to disk");
@@ -315,15 +327,14 @@ xpriv = "XPRIV"
     fn immutagfile_delete_file_entry() {
         let path = ".immutag/.immutag_tests";
         let gpath = ".immutag/.immutag_tests/Immutag";
-        let mut fixture = setup_test(path, "0.1.0");
-        let doc = open(gpath).unwrap();
-        let doc = add_entry(
-            &doc,
-            Some("1LrTstQYNZj8wCvBgipJqL9zghsofpsHEG"),
-            "xpriv",
+        init(path, "0.1.0");
+        add_filesystem(
+            path,
+            "1LrTstQYNZj8wCvBgipJqL9zghsofpsHEG",
             "XPRIV",
         )
         .unwrap();
+        let doc = open(gpath).unwrap();
         write(doc.clone(), gpath).expect("failed to write toml to disk");
         let immutag_res = immutag(&doc, Some("1LrTstQYNZj8wCvBgipJqL9zghsofpsHEG"), "xpriv").unwrap();
 
@@ -341,6 +352,8 @@ xpriv = "XPRIV"
 
         assert_eq!(result.is_ok(), false);
 
-        fixture.teardown(true);
+        Fixture::new()
+            .add_dirpath(path.to_string())
+            .teardown(true);
     }
 }
