@@ -7,8 +7,6 @@ use common::Fixture;
 
 // init
 
-// set_filesystem(bitcoin-addr, xpriv, mnemonic)
-
 // write(toml: String)
 
 // get_xpriv
@@ -112,39 +110,6 @@ pub fn delete_entry<T: AsRef<str>>(
 mod integration {
     use super::*;
     use common::Fixture;
-
-    pub fn setup_test<T: AsRef<str>>(
-        path: T,
-        version: T
-    ) -> Fixture {
-        let fixture = Fixture::new()
-            .add_dirpath(path.as_ref().to_string())
-            .build();
-
-        init(
-            path.as_ref().to_string() + "/Immutag",
-            version.as_ref().to_string(),
-        );
-
-        fixture
-    }
-
-    pub fn setup_add<T: AsRef<str>>(
-        immutag_path: T,
-    ) -> (Document, Result<String, ImmutagFileError>) {
-        let doc = open(immutag_path.as_ref()).unwrap();
-        let doc = add_entry(
-            &doc,
-            Some("1LrTstQYNZj8wCvBgipJqL9zghsofpsHEG"),
-            "xpriv",
-            "XPRIV",
-        )
-        .unwrap();
-        write(doc.clone(), immutag_path.as_ref()).expect("failed to write toml to disk");
-        let immutag_res = immutag(&doc, Some("1LrTstQYNZj8wCvBgipJqL9zghsofpsHEG"), "xpriv");
-
-        (doc, immutag_res)
-    }
 
     #[test]
     fn immutagfile_init() {
