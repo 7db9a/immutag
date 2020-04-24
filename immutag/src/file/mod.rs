@@ -47,3 +47,9 @@ pub fn delete_entry<T: AsRef<str>>(
 ) -> Result<Document, ImmutagFileError> {
     immutag_file::delete_entry(doc, file_name)
 }
+
+#[cfg(test)]
+mod integration {
+    use super::*;
+    use common::Fixture;
+}
