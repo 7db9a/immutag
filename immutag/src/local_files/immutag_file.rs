@@ -172,23 +172,19 @@ version = "0.1.0"
     fn immutagfile_add_filesystem() {
         let path = ".immutag/.immutag_tests";
         let gpath = ".immutag/.immutag_tests/Immutag";
-
         init(path, "0.1.0");
-
-        let doc = open(gpath).unwrap();
-
-        let doc = add_filesystem(
+        add_filesystem(
             path,
             "1LrTstQYNZj8wCvBgipJqL9zghsofpsHEG",
             "XPRIV",
         )
         .unwrap();
-
         let doc = open(gpath).unwrap();
         let immutag_res = immutag(&doc, Some("1LrTstQYNZj8wCvBgipJqL9zghsofpsHEG"), "xpriv").unwrap();
         Fixture::new()
             .add_dirpath(path.to_string())
             .teardown(true);
+
         assert_eq!(immutag_res, "XPRIV");
     }
 
