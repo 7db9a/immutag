@@ -52,4 +52,20 @@ pub fn delete_entry<T: AsRef<str>>(
 mod integration {
     use super::*;
     use common::Fixture;
+
+    pub fn setup_test<T: AsRef<str>>(
+        path: T,
+        version: T
+    ) -> Fixture {
+        let fixture = Fixture::new()
+            .add_dirpath(path.as_ref().to_string())
+            .build();
+
+        init(
+            path.as_ref().to_string() + "/Immutag",
+            version.as_ref().to_string(),
+        );
+
+        fixture
+    }
 }
