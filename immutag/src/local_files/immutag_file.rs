@@ -155,7 +155,6 @@ version = "0.1.0"
     #[test]
     fn immutagfile_add_filesystem() {
         let path = ".immutag/.immutag_tests";
-        let gpath = ".immutag/.immutag_tests/Immutag";
         init(path, "0.1.0");
         add_filesystem(
             path,
@@ -163,13 +162,12 @@ version = "0.1.0"
             "XPRIV",
         )
         .unwrap();
-        let doc = open(gpath).unwrap();
-        let immutag_res = immutag(&doc, Some("1LrTstQYNZj8wCvBgipJqL9zghsofpsHEG"), "xpriv").unwrap();
+        let xpriv = get_xpriv(path, "1LrTstQYNZj8wCvBgipJqL9zghsofpsHEG").unwrap();
         Fixture::new()
             .add_dirpath(path.to_string())
             .teardown(true);
 
-        assert_eq!(immutag_res, "XPRIV");
+        assert_eq!(xpriv, "XPRIV");
     }
 
     #[test]
@@ -183,10 +181,8 @@ version = "0.1.0"
             "XPRIV",
         )
         .unwrap();
-        let doc = open(gpath).unwrap();
 
-        let xpriv = immutag(&doc, Some("1LrTstQYNZj8wCvBgipJqL9zghsofpsHEG"), "xpriv").unwrap();
-
+        let xpriv = get_xpriv(path, "1LrTstQYNZj8wCvBgipJqL9zghsofpsHEG").unwrap();
         let add_again_res = add_filesystem(
             path,
             "1LrTstQYNZj8wCvBgipJqL9zghsofpsHEG",
@@ -321,9 +317,9 @@ xpriv = "XPRIV"
         .unwrap();
         let doc = open(gpath).unwrap();
         write(doc.clone(), gpath).expect("failed to write toml to disk");
-        let immutag_res = immutag(&doc, Some("1LrTstQYNZj8wCvBgipJqL9zghsofpsHEG"), "xpriv").unwrap();
 
-        assert_eq!(immutag_res, "XPRIV");
+        let xpriv = get_xpriv(path, "1LrTstQYNZj8wCvBgipJqL9zghsofpsHEG").unwrap();
+        assert_eq!(xpriv, "XPRIV");
 
         // Focus of test.
         let doc = open(gpath).unwrap();
@@ -332,7 +328,8 @@ xpriv = "XPRIV"
 
         let result = {
             let doc = open(".immutag/.immutag_tests/Immutag").unwrap();
-            immutag(&doc, Some("1LrTstQYNZj8wCvBgipJqL9zghsofpsHEG"), "xpriv")
+
+            get_xpriv(path, "1LrTstQYNZj8wCvBgipJqL9zghsofpsHEG")
         };
 
         assert_eq!(result.is_ok(), false);
