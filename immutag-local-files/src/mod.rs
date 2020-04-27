@@ -3,14 +3,15 @@ This module manages the specifics of the Immutag file.
 */
 extern crate toml;
 extern crate toml_edit;
-use toml_edit::{value, Document};
+pub use toml_edit::{value, Document};
 
 pub mod err;
 pub mod common;
 use err::Error;
 pub use err::{ErrorKind, ImmutagFileError};
 
-use std::fs::{read_to_string, File};
+use std::fs::File;
+pub use std::fs::read_to_string;
 use std::io::Write; // Not sure why, but file.write_all doesn't work without it. Not explicit to me.
 
 /// Reveals the state of the Immutag file.
@@ -22,15 +23,16 @@ pub enum ImmutagFileState {
 }
 
 /// Creates a Immutag file with basic info.
-pub fn init<T: AsRef<str>>(path: T, version: T) {
+pub fn init<T: AsRef<str>>(path: T, version: T) -> Result<Document, ImmutagFileError> {
     let toml = format!(
         r#"['immutag']
 version = "{}""#,
         version.as_ref(),
     );
 
-    let doc = toml.parse::<Document>().expect("invalid doc");
-    write(doc, path).expect("failed to write toml to disk");
+    let doc = toml.parse::<Document>()?;
+
+    Ok(doc)
 }
 
 /// Open a Immutag file.
@@ -116,7 +118,7 @@ pub fn entry_exists<T: AsRef<str>>(doc: &Document, key: T, key_nested: Option<T>
     }
 }
 
-fn insert_entry<T: AsRef<str>>(
+pub fn insert_entry<T: AsRef<str>>(
     doc: &Document,
     file_name: Option<T>,
     key: T,
@@ -468,10 +470,12 @@ mod integration {
             .add_dirpath(path.as_ref().to_string())
             .build();
 
-        init(
-            path.as_ref().to_string() + "/Immutag",
-            version.as_ref().to_string(),
-        );
+        let immutag_path = path.as_ref().to_string() + "/Immutag";
+        let doc = init(
+            immutag_path.as_ref(),
+            version.as_ref(),
+        ).unwrap();
+        write(doc.clone(), immutag_path).expect("failed to write toml to disk");
 
         fixture
     }

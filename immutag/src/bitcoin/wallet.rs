@@ -1,7 +1,6 @@
 use std::fmt;
 use std::str::FromStr;
 use immutag_bitcoin;
-use immutag_file;
 use immutag_bitcoin::sv_wallet;
 use immutag_bitcoin::is_private_key_valid;
 

@@ -15,4 +15,4 @@ path = "src/mod.rs"
 
 [dependencies]
 immutag-bitcoin = { path = "../immutag-bitcoin" }
-immutag-file = { path = "../immutag-file" }
+immutag-local-files = { path = "../immutag-local-files" }
