@@ -71,6 +71,26 @@ pub fn immutag<T: AsRef<str>>(
     immutag_local_files::immutag(doc, file_name, key)
 }
 
+pub fn get_xpriv<T: AsRef<str>>(
+    path: T,
+    file_addr: T,
+) -> Result<String, ImmutagFileError> {
+    let gpath = common::directorate(path.as_ref().to_string())+ "Immutag";
+    let doc = open(gpath.clone()).unwrap();
+
+    immutag_local_files::immutag(&doc, Some(file_addr.as_ref()), "xpriv")
+}
+
+pub fn get_mnemonic<T: AsRef<str>>(
+    path: T,
+    file_addr: T,
+) -> Result<String, ImmutagFileError> {
+    let gpath = common::directorate(path.as_ref().to_string())+ "Immutag";
+    let doc = open(gpath.clone()).unwrap();
+
+    immutag_local_files::immutag(&doc, Some(file_addr.as_ref()), "mnemonic")
+}
+
 pub fn entry_exists<T: AsRef<str>>(doc: &Document, key: T, key_nested: Option<T>) -> bool {
     immutag_local_files::entry_exists(doc, key, key_nested)
 }
