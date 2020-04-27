@@ -46,20 +46,6 @@ pub fn is_valid(doc: &Document) -> ImmutagFileState {
     immutag_local_files::is_valid(doc)
 }
 
-///! Retrieve field data from a Immutag file. For example, if the file name is provided, it will attempt to retrieve the field `immutag` nested in the `README.md` entry.
-///!  ```ignore
-///!  [README.md]
-///!  immutag = "The README."
-///!  ```
-///! If no file name is given, it will retrieve all the nested value in the key and not necessarily a specific field.
-pub fn immutag<T: AsRef<str>>(
-    doc: &Document,
-    file_name: Option<T>,
-    key: T,
-) -> Result<String, ImmutagFileError> {
-    immutag_local_files::immutag(doc, file_name, key)
-}
-
 pub fn get_xpriv<T: AsRef<str>>(
     path: T,
     bitcoin_addr: T,
@@ -78,6 +64,19 @@ pub fn get_mnemonic<T: AsRef<str>>(
     let doc = open(gpath.clone()).unwrap();
 
     immutag_local_files::immutag(&doc, Some(bitcoin_addr.as_ref()), "mnemonic")
+}
+///! Retrieve field data from a Immutag file. For example, if the file name is provided, it will attempt to retrieve the field `immutag` nested in the `README.md` entry.
+///!  ```ignore
+///!  [README.md]
+///!  immutag = "The README."
+///!  ```
+///! If no file name is given, it will retrieve all the nested value in the key and not necessarily a specific field.
+fn immutag<T: AsRef<str>>(
+    doc: &Document,
+    file_name: Option<T>,
+    key: T,
+) -> Result<String, ImmutagFileError> {
+    immutag_local_files::immutag(doc, file_name, key)
 }
 
 pub fn entry_exists<T: AsRef<str>>(doc: &Document, key: T, key_nested: Option<T>) -> bool {
