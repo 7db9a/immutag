@@ -1,13 +1,6 @@
-use immutag_local_files::{value, Document, ErrorKind, ImmutagFileError, ImmutagFileState, common, read_to_string};
+use immutag_local_files::{value, Document, common, read_to_string};
 use common::Fixture;
-
-// init
-
-// write(toml: String)
-
-// get_xpriv
-
-// get_mnemonic
+pub use immutag_local_files::{ErrorKind, ImmutagFileError, ImmutagFileState};
 
 // get_nickname
 
