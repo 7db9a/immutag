@@ -5,14 +5,17 @@ pub use immutag_local_files::{ErrorKind, ImmutagFileError, ImmutagFileState};
 // get_nickname
 
 /// Creates a Immutag file with basic info.
-pub fn init<T: AsRef<str>>(path: T, version: T) {
+pub fn init<T: AsRef<str>>(path: T, version: T) -> Result<(), ImmutagFileError> {
     let fixture = Fixture::new()
         .add_dirpath(path.as_ref().to_string())
         .build();
 
     let gpath = common::directorate(path.as_ref().to_string())+ "Immutag";
 
-    immutag_local_files::init(gpath, version.as_ref().to_string());
+    let doc = immutag_local_files::init(gpath.as_ref(), version.as_ref());
+    immutag_local_files::init(gpath.as_ref(), version.as_ref());
+
+    immutag_local_files::write(doc?, gpath)
 }
 
 pub fn add_filesystem<T: AsRef<str>>(

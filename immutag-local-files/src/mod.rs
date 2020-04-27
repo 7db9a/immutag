@@ -23,15 +23,16 @@ pub enum ImmutagFileState {
 }
 
 /// Creates a Immutag file with basic info.
-pub fn init<T: AsRef<str>>(path: T, version: T) {
+pub fn init<T: AsRef<str>>(path: T, version: T) -> Result<Document, ImmutagFileError> {
     let toml = format!(
         r#"['immutag']
 version = "{}""#,
         version.as_ref(),
     );
 
-    let doc = toml.parse::<Document>().expect("invalid doc");
-    write(doc, path).expect("failed to write toml to disk");
+    let doc = toml.parse::<Document>()?;
+
+    Ok(doc)
 }
 
 /// Open a Immutag file.
@@ -469,10 +470,12 @@ mod integration {
             .add_dirpath(path.as_ref().to_string())
             .build();
 
-        init(
-            path.as_ref().to_string() + "/Immutag",
-            version.as_ref().to_string(),
-        );
+        let immutag_path = path.as_ref().to_string() + "/Immutag";
+        let doc = init(
+            immutag_path.as_ref(),
+            version.as_ref(),
+        ).unwrap();
+        write(doc.clone(), immutag_path).expect("failed to write toml to disk");
 
         fixture
     }
