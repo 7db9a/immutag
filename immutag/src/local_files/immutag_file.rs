@@ -62,22 +62,22 @@ pub fn immutag<T: AsRef<str>>(
 
 pub fn get_xpriv<T: AsRef<str>>(
     path: T,
-    file_addr: T,
+    bitcoin_addr: T,
 ) -> Result<String, ImmutagFileError> {
     let gpath = common::directorate(path.as_ref().to_string())+ "Immutag";
     let doc = open(gpath.clone()).unwrap();
 
-    immutag_local_files::immutag(&doc, Some(file_addr.as_ref()), "xpriv")
+    immutag_local_files::immutag(&doc, Some(bitcoin_addr.as_ref()), "xpriv")
 }
 
 pub fn get_mnemonic<T: AsRef<str>>(
     path: T,
-    file_addr: T,
+    bitcoin_addr: T,
 ) -> Result<String, ImmutagFileError> {
     let gpath = common::directorate(path.as_ref().to_string())+ "Immutag";
     let doc = open(gpath.clone()).unwrap();
 
-    immutag_local_files::immutag(&doc, Some(file_addr.as_ref()), "mnemonic")
+    immutag_local_files::immutag(&doc, Some(bitcoin_addr.as_ref()), "mnemonic")
 }
 
 pub fn entry_exists<T: AsRef<str>>(doc: &Document, key: T, key_nested: Option<T>) -> bool {

@@ -16,14 +16,14 @@ pub fn add_filesystem<T: AsRef<str>>(
 
 pub fn get_xpriv<T: AsRef<str>>(
     path: T,
-    file_addr: T
+    bitcoin_addr: T
 ) -> Result<String, ImmutagFileError> {
-    immutag_file::get_xpriv(path, file_addr)
+    immutag_file::get_xpriv(path, bitcoin_addr)
 }
 
 pub fn get_mnemonic<T: AsRef<str>>(
     path: T,
-    file_addr: T
+    bitcoin_addr: T
 ) -> Result<String, ImmutagFileError> {
-    immutag_file::get_mnemonic(path, file_addr)
+    immutag_file::get_mnemonic(path, bitcoin_addr)
 }
