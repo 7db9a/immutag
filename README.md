@@ -22,41 +22,40 @@ The following applications and technologies may prove useful:
 
 * ipfs - immutable content-addresable files
 
-* bitcoin-sv - mutable file hierarchy and ledger
+* bitcoin - mutable file hierarchy and ledger
 
 * git - collaborative file editing
 
+* recfiles - tags stored in vcs (e.g. git) friendly file format
+
 * tmsu - local virtual filesytem with tag-based view
 
-You can have many filesystems. They're all in the `immutag` direcotry. Each filesystem is named after the first address in a bitcoin HD wallet. A git directory is named after the file's bitcoin address.
+You can have many filesystems. They're all in the `immutag` director. Each filesystem is named after the first address in a bitcoin HD wallet. A git directory is named after the filesystem's bitcoin address.
 
 ```
 immutag
 ├── 1LrTstQYNZj8wCvBgipJqL9zghsofpsHEG
 │   ├── .git
-│   ├── immutag-store
+│   ├── store
+│   ├── metadata
 ├── 1JvFXyZMC31ShnD8PSKgN1HKQ2kGQLVpCt
 │   ├── .git
-│   ├── immutag-store
+│   ├── store
+│   ├── metadata
+├── immutag-file
 
 ```
-$ cat 1LrTstQYNZj8wCvBgipJqL9zghsofpsHEG/immmutag-store
 
-```
-# BITCOIN-ADDR: IPFS-ADDR, TAGS, METADATA
-
-37gsHDLSG5TJvApGfiUZDaDo9mSr6rjLv6: QmeH81SYnASj5s91gQ22PdkYMgw45FD6kgrmBEU74Vp439, ["letter", "son"] , ""
-n2DoUfi8oUkTALKdd3AvVeTTyWg1AQmXCD: QmQPRexanRL6pnSPAzC696if49BviGaLNKvC3gp3ApPQmN, "letter", "son", "advice" ], "How to be good and just."
-```
-Each bitcoin address corresponds to specific file version. Above, there are 2 file versions, representing a single mutable file. The above is for conceptual purposes and the file may look a lot different.
-
-Each version bticoin address is a child address of a Bitcoin hierarchical deterministic wallet. For more details, see [here](#file-versions).
-
-Immutag searches for an "immutag-file" in the current directory.
+$ cat immutag/immutag-file
 
 ```
 ['immutag']
 version = "0.1.0"
+ledger = "bitcoinsv"
+contentsys = "ipfs"
+filehash = "sha256"
+vcs = "git"
+
 
 ['1LrTstQYNZj8wCvBgipJqL9zghsofpsHEG']
 xpriv = "xprv9s21ZrQH143K29TJGFSiEAAQM8SMBH2V6x5Aaf9bqvXftrs1v274STWWKfz8svukBLGEQgWqkgRhpt2CNFY89CFaqdsA3gicZeqexk2itxf"
@@ -68,6 +67,49 @@ xpriv = "xprv9s21ZrQH143K3w3ZiXq14u2Ln2xp5wLjSmx8ypGrvhZ7rS7TKuFeQCviiwy1ULB51tk
 mnemonic ""legal winner thank year wave sausage worth useful legal winner thank yellow"
 ```
 
+The options `ledger`, and so forth, is how to extend the fileystem format to different protocols.
+
+$ cat 1LrTstQYNZj8wCvBgipJqL9zghsofpsHEG/store
+
+```
+# BITCOIN-ADDR: SHA256, IPFS-ADDR
+
+37gsHDLSG5TJvApGfiUZDaDo9mSr6rjLv6: 1103def0e9d9036f59b7ef8524791710ed9a6e477b611abb94b0302edf887ee9, QmeH81SYnASj5s91gQ22PdkYMgw45FD6kgrmBEU74Vp439
+n2DoUfi8oUkTALKdd3AvVeTTyWg1AQmXCD: f909e48c4b5b8aeaf45cd6844994b37a0de5c52d43b36410c35d9dd8ae6f9afb, QmQPRexanRL6pnSPAzC696if49BviGaLNKvC3gp3ApPQmN
+```
+Each bitcoin address corresponds to specific file version. Above, there are 2 file versions, representing a single mutable file. The above is for conceptual purposes and the file may look a lot different.
+
+Each version bticoin address is a child address of a Bitcoin hierarchical deterministic wallet. For more details, see [here](#file-versions).
+
+$ cat 1LrTstQYNZj8wCvBgipJqL9zghsofpsHEG/metadata
+
+```
+# _*_ mode: rec _*_
+
+%rec: Metadata
+%mandatory: sha256 bitcoinsv_addr ipfs_addr file_type
+
+sha256: f909e48c4b5b8aeaf45cd6844994b37a0de5c52d43b36410c35d9dd8ae6f9afb
+bitcoinsv_addr: 37gsHDLSG5TJvApGfiUZDaDo9mSr6rjLv6
+ipfs_addr: QmQPRexanRL6pnSPAzC696if49BviGaLNKvC3gp3ApPQmN
+file_type: mp4
+tag_video: 1
+tag_sales: 1
+tag_promotional: 1
+
+sha256: 1103def0e9d9036f59b7ef8524791710ed9a6e477b611abb94b0302edf887ee9
+bitcoinsv_addr: n2DoUfi8oUkTALKdd3AvVeTTyWg1AQmXCD
+ipfs_addr: QmQPRexanRL6pnSPAzC696if49BviGaLNKvC3gp3ApPQmN
+file_type: mp4
+metadata: "Best lemonade, ever."
+name: lemonade_stand
+tag_video: 1
+tag_sales: 1
+tag_promotional: 1
+tag_lemonade: 1
+
+# End of metadta.rec
+```
 Each entry is a complete fileystem with potentially many respective files.
 
 ### File branching
