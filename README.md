@@ -46,13 +46,13 @@ immutag
 │   ├── .git
 │   ├── store
 │   ├── metadata
-├── immutag-file
+├── immutag.toml
 
 ```
 
 ### Immutag file
 
-All you need is an immutag-file to initialize an immutag filesystem. The options `ledger`, and so forth, is how to extend the fileystem format to different protocols.
+All you need is an immutag.toml to initialize an immutag filesystem. The options `ledger`, and so forth, is how to extend the fileystem format to different protocols.
 
 $ cat immutag/immutag.toml
 
