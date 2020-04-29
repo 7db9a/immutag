@@ -170,7 +170,6 @@ file_hash: f909e48c4b5b8aeaf45cd6844994b37a0de5c52d43b36410c35d9dd8ae6f9afb
 version_addr: 37gsHDLSG5TJvApGfiUZDaDo9mSr6rjLv6
 content_addr: QmQPRexanRL6pnSPAzC696if49BviGaLNKvC3gp3ApPQmN
 alias: lemonade_stand
-alias_path: /home/me/corporate/sales/promos/
 file_type: mp4
 tag_video: 1
 tag_sales: 1
@@ -181,7 +180,6 @@ version_addr: n2DoUfi8oUkTALKdd3AvVeTTyWg1AQmXCD
 content_addr: QmQPRexanRL6pnSPAzC696if49BviGaLNKvC3gp3ApPQmN
 file_type: mp4
 alias: lemonade_stand
-alias_path: /home/me/corporate/sales/promos/
 metadata: "Our sales video about the best lemonade, ever."
 tag_video: 1
 tag_sales: 1
