@@ -34,17 +34,17 @@ These should be easily swappable with alternatives.
 
 ### Directory structure
 
-You can have many filesystems. They're all in the `immutag` director. Each filesystem is named after the first address in a bitcoin HD wallet. A git directory is named after the filesystem's bitcoin address.
+You can have many filesystems. They're all in the `.immutag` directory located by default in $HOME, unless specified otherwise. Each filesystem is named after the first address in a bitcoin HD wallet. A git directory is named after the filesystem's bitcoin address.
 
 ```
-immutag
+.immutag
 ├── 1LrTstQYNZj8wCvBgipJqL9zghsofpsHEG
 │   ├── .git
-│   ├── store
+│   ├── version-store
 │   ├── metadata
 ├── 1JvFXyZMC31ShnD8PSKgN1HKQ2kGQLVpCt
 │   ├── .git
-│   ├── store
+│   ├── version-store
 │   ├── metadata
 ├── immutag.toml
 
@@ -90,9 +90,9 @@ mnemonic ""legal winner thank year wave sausage worth useful legal winner thank 
 
 The keys are bitcoin public address entry points into the respective fileystems. Each filesystem is seperate HD wallet.
 
-### Store
+### Version store
 
-$ cat 1LrTstQYNZj8wCvBgipJqL9zghsofpsHEG/store
+$ cat 1LrTstQYNZj8wCvBgipJqL9zghsofpsHEG/version-store
 
 ```
 # file-hash: file-addr
@@ -103,6 +103,8 @@ f909e48c4b5b8aeaf45cd6844994b37a0de5c52d43b36410c35d9dd8ae6f9afb: {bitcoin-file-
 Every file version is keyed by filehash. The file address of each version is the value.
 
 ### Metadata
+
+The metadata layer is seperate to avoid vendor-lock. Here we use recfile format, but some alternative can be used.
 
 $ cat 1LrTstQYNZj8wCvBgipJqL9zghsofpsHEG/metadata
 
@@ -115,6 +117,8 @@ $ cat 1LrTstQYNZj8wCvBgipJqL9zghsofpsHEG/metadata
 file_hash: f909e48c4b5b8aeaf45cd6844994b37a0de5c52d43b36410c35d9dd8ae6f9afb
 version_addr: 37gsHDLSG5TJvApGfiUZDaDo9mSr6rjLv6
 content_addr: QmQPRexanRL6pnSPAzC696if49BviGaLNKvC3gp3ApPQmN
+alias: lemonade_stand
+alias_path: /home/me/corporate/sales/promos/
 file_type: mp4
 tag_video: 1
 tag_sales: 1
@@ -124,8 +128,9 @@ filehash: 1103def0e9d9036f59b7ef8524791710ed9a6e477b611abb94b0302edf887ee9
 version_addr: n2DoUfi8oUkTALKdd3AvVeTTyWg1AQmXCD
 content_addr: QmQPRexanRL6pnSPAzC696if49BviGaLNKvC3gp3ApPQmN
 file_type: mp4
-metadata: "Best lemonade, ever."
-name: lemonade_stand
+alias: lemonade_stand
+alias_path: /home/me/corporate/sales/promos/
+metadata: "Our sales video about the best lemonade, ever."
 tag_video: 1
 tag_sales: 1
 tag_promotional: 1
@@ -141,11 +146,11 @@ If a file version is considered important enough, a new branch can cheaply be cr
 
 ### Bitcoin network
 
-The user can push to bitcoin, which opreturns the latest ipfs addr of the file store.
+The user can push to bitcoin, which opreturns the latest ipfs addr of the file version-store.
 
 ### Private network
 
-Collaborators can push and pull to the git repo. A user can reconstruct the git repo from the store entries.
+Collaborators can push and pull to the git repo. A user can reconstruct the git repo from the version-store entries.
 
 ### File discovery services
 
@@ -176,42 +181,74 @@ Test a specific case.
 
 `./dev.sh rust test $name`
 
-## Workflow, sort of.
+## Command Line Interface
 
-There is no `immutag` app, yet. Just throwing ideas around.
+### Init
 
-Initializes immutag in the current directory by importing a mnemonic. Can also pass `--xpriv`. The user creates a wallet from a standard bitcoin wallet, then imports it here.
+`$ immutag init`
 
-`immutag init --mnemonic $MEMONIC`
+Creates `~/.immutag/immutag.toml`. For an alternate location, `--path`.
 
-Returns a bitcoin address, the first external one that is, which is immutable. Each address represents a file.
+### Create a new or import an existing filesystem to immutag.
 
-`immutag new IPFS-ADDR`
+`$ immutag filesys new --alias $work --mnemonic $mnemonic`
 
-Returns the latest external address if you update with a new file version.
+The filesys data is saved to `~/.immutag`.
 
-`immutag update FIRST-ADDRESS IPFS-ADDR`
+Make a bitcoin wallet with an app you like best. Immutag only needs the mnemonic. It can also use the master extended private key of the wallet, using `--xpriv` option, instead of `--mnemonic`.
 
-To find that file.
+### Add a new file
 
-`tmsu tag ADDRESS Faustina Afterlife`
+`$ immutag file new --ipfs-addr $ipfs-addr --filesys-alias $work`
 
-Returns immutable bitcoin addresses that correspond to tag 'video', 'Faustina', and 'Afterlife'.
+**Nicknamed/aliased files**
 
-`tmsu files video Faustina Afterlife`
+`$ immutag file new my-file`
 
-Returns the latest ipfs address of the latest file version.
+That'll add the file to the default filesystem. The file name will become the nickname in immutag.
 
-`immutag FIRST-ADDRESS`
+### Aliases, add a new file
 
-Plays video, 'Saint Faustina's Visions of the Afterlife'.
+Name a file by its nickname. You could have added the file with another nickname, so it's not trivial.
 
-`ipfs cat $vidhash | mplayer -vo xv -`
+`$ ls`
 
-Returns all the IPFS addresses corresponding to the address, not just the most-recent.
+my-file
 
-`immutag ls FIRST-ADDRESS`
+`$ immutag file new my-file --alias nickname-file`
 
+`$ immutag file alias my-file
+
+nickname-file
+
+And from the full-path it was made from.
+
+`$ immutag file alias --fullpath my-file`
+
+/full/path/nickname-file
+
+When using immutag against your files, say a git project, this is very handy. Even though its an alias, you'll much more easily recognize it rather than a ipfs or bitcoin address.
+
+If you only have an ipfs address of the file version and prefer the non-default filesystem.
+
+### Update a file
+
+`$ immutag update --ipfs-addr IPFS-ADDR --filesys-alias $work`
+
+**Using aliases/nicknames**
+
+`$ immutag update my-file`
+
+### Tag a file.
+
+`$ immutag tag my-file showoff 2020`
+
+### Find a file.
+
+`$ immutag files showoff 2020`
+
+alias    content-addr ledger-addr
+my-file  $ipfs-addr   $bitcoin-addr
 
 ## Handling directories or git projects.
 
@@ -227,9 +264,9 @@ If there's some way to use mfs among several nodes without fully syncing, or I'm
 
 After incrementing the file versions some amount of times the ipfs addresses 'manifest' can be pegged to the bitcoin network. Users decide when to push, like on Github.
 
-A file store is updated and referenced by ipfs address on each file update. That file, or its data, then becomes the latest ipfs 'peg'.
+A file version-store is updated and referenced by ipfs address on each file update. That file, or its data, then becomes the latest ipfs 'peg'.
 
-That file store is version controlled with git.
+That file version-store is version controlled with git.
 
 ## Useful libraries
 
