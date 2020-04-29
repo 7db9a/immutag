@@ -16,7 +16,7 @@ We want:
 
 What provides an immutable address space, that also can 'immutably', or determinstically, mutate? Bitcoin. Well, not just bitcoin, but hierchical deterministic cryptographic keys. And bitcoin, for our use case, works locally and on network.
 
-## How it works - possibly
+## How it works
 
 The following applications and technologies may prove useful:
 
@@ -32,9 +32,13 @@ The following applications and technologies may prove useful:
 
 These should be easily swappable with alternatives.
 
-### Directory structure
+Things are done locally, but can be pushed to network (bitcoin and ipfs).  All the local immutag data is in`.immutag/`. Immutag can be initialized locally (think like git), or globally (think like `npm install $package --global`). Each filesystem is named after the first address in a bitcoin HD wallet. A git directory is named after the filesystem's bitcoin address.
 
-You can have many filesystems. They're all in the `.immutag` directory located by default in $HOME, unless specified otherwise. Each filesystem is named after the first address in a bitcoin HD wallet. A git directory is named after the filesystem's bitcoin address.
+**Default**
+
+On `immutag init` in a directory, immutag only manages the files found recursively in it. It's the equivalent of `git init`.
+
+In the example below, `1LrTst` is the address of the filesystem, which is also bitcoin address. By deafult, there can only be single fileystem.
 
 ```
 .immutag
@@ -42,19 +46,43 @@ You can have many filesystems. They're all in the `.immutag` directory located b
 │   ├── .git
 │   ├── version-store
 │   ├── metadata
+│   ├── path-cache
+├── immutag.toml
+
+```
+
+**Global**
+
+[immutag.toml](#immutag-file), [version-store](#version-store), [metadata](#metadata), [path-cache](#path-cache) and the `.git` will all be explained in a later sections.
+
+On `immutag init --global`, `.immutag` is placed in $HOME, or in some other place specified by the user. Globally, you can have many filesystems. They're all in the `.immutag` directory located by default in $HOME, unless specified otherwise.
+
+```
+.immutag
+├── 1LrTstQYNZj8wCvBgipJqL9zghsofpsHEG
+│   ├── .git
+│   ├── version-store
+│   ├── metadata
+│   ├── path-cache
 ├── 1JvFXyZMC31ShnD8PSKgN1HKQ2kGQLVpCt
 │   ├── .git
 │   ├── version-store
 │   ├── metadata
+│   ├── path-cache
 ├── immutag.toml
+├──immutag-path-cache
 
 ```
+
+`1LrTst` and `1JvFXyZ`, in the above example, are completely seperate filesystems.
+
+All the files shown above, including [immutag-path-cache](#immutag-path-cache), will be explained in a later section.
 
 ### Immutag file
 
 All you need is an immutag.toml to initialize an immutag filesystem. The options `ledger`, and so forth, is how to extend the fileystem format to different protocols.
 
-$ cat immutag/immutag.toml
+$ cat .immutag/immutag.toml
 
 ```
 ['immutag']
@@ -65,9 +93,9 @@ filehash = "sha256"
 vcs = "git"
 ```
 
-Let's add some filesystems. The other entries represent complete fileystems.
+Let's add some filesystems. Remember, you can only have multiple filesystems when using `--global`.
 
-$ cat immutag/immutag.toml
+$ cat .immutag/immutag.toml
 
 ```
 ['immutag']
@@ -90,9 +118,22 @@ mnemonic ""legal winner thank year wave sausage worth useful legal winner thank 
 
 The keys are bitcoin public address entry points into the respective fileystems. Each filesystem is seperate HD wallet.
 
+### Immutag path cache
+
+$ cat .immutag/immutag-path-cache
+
+```
+{bitcoin-fileystem-addr}:  /latest/path/to/a/immutag/local/project/
+{bitcoin-filesystem-addr}: /latest/path/to/a/immutag/local/project/
+```
+
+This data helps keep track of immutag projects spread out on the filesystem from `immutag init`. The user may want to be aware of all tags, not just those globally defined. immutag can also do recursive path searches to discover all immutag projects.
+
+The cache can also be leveraged for file watchers or filesystem hooks (where supported), to assist the user with file modifications.
+
 ### Version store
 
-$ cat 1LrTstQYNZj8wCvBgipJqL9zghsofpsHEG/version-store
+$ cat .immutag/1LrTstQYNZj8wCvBgipJqL9zghsofpsHEG/version-store
 
 ```
 # file-hash: file-addr
@@ -102,11 +143,22 @@ f909e48c4b5b8aeaf45cd6844994b37a0de5c52d43b36410c35d9dd8ae6f9afb: {bitcoin-file-
 ```
 Every file version is keyed by filehash. The file address of each version is the value.
 
+### Path cache
+
+$ cat .immmutag/1LrTstQYNZj8wCvBgipJqL9zghsofpsHEG/path-cache
+
+```
+{bitcoin-file-addr (not version addr)}: /latest/path/to/file
+{bitcoin-file-addr (not version addr)}: /latest/path/to/file
+```
+
+This helps with identifying modified files, along with file hashes, when using `immutag status`.
+
 ### Metadata
 
 The metadata layer is seperate to avoid vendor-lock. Here we use recfile format, but some alternative can be used.
 
-$ cat 1LrTstQYNZj8wCvBgipJqL9zghsofpsHEG/metadata
+$ cat .immutag/1LrTstQYNZj8wCvBgipJqL9zghsofpsHEG/metadata
 
 ```
 # _*_ mode: rec _*_
@@ -140,13 +192,16 @@ tag_lemonade: 1
 ```
 Each version bticoin address is a child address of a Bitcoin hierarchical deterministic wallet. For more details, see [here](#file-versions).
 
+### Git
+
+The `.immutag` directory is under automatic and atomic version control. The user doesn't need to manually commit anything. Other vcs can be dropped into git's place.
+
+Users who which to collaborate on editing immutag files can do so with git. In fact, an entire git repo can be an immutag file be compressing (tar) the git directory. That way collaboraters have a global address to their projects, which point to the preferred hosts, such as Github, Gitlab, or any other alternative.
+
+
 ### File branching
 
 If a file version is considered important enough, a new branch can cheaply be created. A new hardened child bitcoin address is given to it. The forked file version is indicated by an opreturn on the original file. The opreturn has the forked file version's ipfs hash and the bitcoin address of the new branch.
-
-### Bitcoin network
-
-The user can push to bitcoin, which opreturns the latest ipfs addr of the file version-store.
 
 ### Private network
 
@@ -168,7 +223,6 @@ docker volume create --name=immutag-cargo-data-volume
 ```
 
 ### Usage
-
 Launch.
 
 `docker-compose up`
@@ -181,13 +235,25 @@ Test a specific case.
 
 `./dev.sh rust test $name`
 
-## Command Line Interface
+## API ideas
 
 ### Init
 
+#### Current directory
+
 `$ immutag init`
 
-Creates `~/.immutag/immutag.toml`. For an alternate location, `--path`.
+Creates `.immutag/immutag.toml`. Immutag will recursively search for `.immutag`.
+
+#### Global
+
+`$ immutag init --global`
+
+It creates `$HOME/.immutag/`, but with 2 files. `immutag.toml` and `path-helper`.
+
+`path-cache` simply maps the most recent local paths of versioned files.
+
+For an alternate location, `--path`.
 
 ### Create a new or import an existing filesystem to immutag.
 
