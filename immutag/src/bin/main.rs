@@ -16,16 +16,18 @@ fn main() {
             SubCommand::with_name("add-fs")
                 .about("Add filesystem.")
                 .arg(
-                    Arg::with_name("LEDGER-ADDR")
+                    Arg::with_name("ledger-addr")
+                        .takes_value(true)
                         .help("Set the address to the filesystem from the HD wallet (e.g. Bitcoin).")
-                        .required(true)
-                        .index(1)
+                        //.required(true)
+                        .long("ledger-addr")
                 )
                 .arg(
-                    Arg::with_name("MASTER-XPRIV")
+                    Arg::with_name("master-xpriv")
+                        .takes_value(true)
                         .help("Set the master extended private key of the HD wallet.")
-                        .required(true)
-                        .index(2)
+                        //.required(true)
+                        .long("master-xpriv")
                 ),
         )
         .get_matches();
@@ -38,15 +40,22 @@ fn main() {
     if let Some(matches) = matches.subcommand_matches("add-fs") {
         let mut path: &'static str;
         path = "Immutag/";
-        println!("Add filesystem.");
-        if let Some(mut in_ledgeraddr) = matches.values_of("LEDGER-ADDR") {
-            let ledgeraddr = in_ledgeraddr.next().unwrap();
-            if let Some(mut in_masterxpriv) = matches.values_of("MASTER-XPRIV") {
-                let masterxpriv = in_masterxpriv.next().unwrap();
-                local_files::add_filesystem(path, ledgeraddr, masterxpriv);
-            }
+        let mut ledgeraddr = "";
+        if let Some(mut in_ledgeraddr) = matches.values_of("ledger-addr") {
+            ledgeraddr = in_ledgeraddr.next().unwrap();
+            //println!("Add filesystem: match ledger addr: {:#?}.", ledgeraddr);
         } else {
             println!("Shouldn't be allowed.");
+        }
+
+        if let Some(mut in_masterxpriv) = matches.values_of("master-xpriv") {
+            let masterxpriv = in_masterxpriv.next().unwrap();
+            if ledgeraddr != "" {
+                local_files::add_filesystem(path, &ledgeraddr, masterxpriv);
+                //println!("Add filesystem: match master-xpriv-: {:#?}.", masterxpriv);
+                println!("Add filesystem.");
+            }
+
         }
     }
 
@@ -144,6 +153,50 @@ mod tests {
         assert_eq!(
             String::from_utf8_lossy(&output.stdout),
             "Initialized immutag in the current directory.\n"
+        );
+    }
+
+    #[test]
+    fn cli_addfilsystem() {
+        // If you use ./target/debug/[package], it won't
+        // reflect any re-compilation the test did.
+        // Therefore, using the cargo command to run the
+        // package binary is best.
+
+        let test_path = std::path::Path::new("/tmp/immutag_tests");
+
+        let mut fixture = Fixture::new()
+           .add_dirpath(test_path.to_str().unwrap().to_string())
+           .build();
+
+        let mut path_cache = command_assistors::PathCache::new(&test_path);
+
+        // Changing directories.
+        path_cache.switch();
+
+        let output = Command::new("/immutag/target/debug/immutag")
+            .arg("init")
+            .output()
+            .expect("failed to execute immutag init process");
+
+        let few_ms = std::time::Duration::from_millis(3000);
+        std::thread::sleep(few_ms);
+        let output = Command::new("/immutag/target/debug/immutag")
+            .arg("add-fs")
+            .arg("--ledger-addr")
+            .arg("1LrTstQYNZj8wCvBgipJqL9zghsofpsHEG")
+            .arg("--master-xpriv")
+            .arg("xprv9s21ZrQH143K29TJGFSiEAAQM8SMBH2V6x5Aaf9bqvXftrs1v274STWWKfz8svukBLGEQgWqkgRhpt2CNFY89CFaqdsA3gicZeqexk2itxf")
+            .output()
+            .expect("failed to execute immutag add-fs process");
+
+        path_cache.switch_back();
+
+        fixture.teardown(true);
+
+        assert_eq!(
+            String::from_utf8_lossy(&output.stdout),
+            "Add filesystem.\n"
         );
     }
 }
