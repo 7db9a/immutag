@@ -12,12 +12,42 @@ fn main() {
             SubCommand::with_name("init")
                 .about("Initialize immutag filesystems.")
         )
+        .subcommand(
+            SubCommand::with_name("add-fs")
+                .about("Add filesystem.")
+                .arg(
+                    Arg::with_name("LEDGER-ADDR")
+                        .help("Set the address to the filesystem from the HD wallet (e.g. Bitcoin).")
+                        .required(true)
+                        .index(1)
+                )
+                .arg(
+                    Arg::with_name("MASTER-XPRIV")
+                        .help("Set the master extended private key of the HD wallet.")
+                        .required(true)
+                        .index(2)
+                ),
+        )
         .get_matches();
     if let Some(matches) = matches.subcommand_matches("init") {
         let mut path: &'static str;
         path = "Immutag/";
         local_files::immutag_file_init(path, "0.1.0");
         println!("Initialized immutag in the current directory.");
+    }
+    if let Some(matches) = matches.subcommand_matches("add-fs") {
+        let mut path: &'static str;
+        path = "Immutag/";
+        println!("Add filesystem.");
+        if let Some(mut in_ledgeraddr) = matches.values_of("LEDGER-ADDR") {
+            let ledgeraddr = in_ledgeraddr.next().unwrap();
+            if let Some(mut in_masterxpriv) = matches.values_of("MASTER-XPRIV") {
+                let masterxpriv = in_masterxpriv.next().unwrap();
+                local_files::add_filesystem(path, ledgeraddr, masterxpriv);
+            }
+        } else {
+            println!("Shouldn't be allowed.");
+        }
     }
 
     // If we set the multiple() option of a flag we can check how many times the user specified
