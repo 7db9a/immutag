@@ -16,7 +16,7 @@ We want:
 
 What provides an immutable address space, that also can 'immutably', or determinstically, mutate? Bitcoin. Well, not just bitcoin, but hierchical deterministic cryptographic keys. And bitcoin, for our use case, works locally and on network.
 
-## How it works - possibly
+## How it works
 
 The following applications and technologies may prove useful:
 
@@ -32,29 +32,57 @@ The following applications and technologies may prove useful:
 
 These should be easily swappable with alternatives.
 
-### Directory structure
+Things are done locally, but can be pushed to network (bitcoin and ipfs).  All the local immutag data is in`.immutag/`. Immutag can be initialized locally (think like git), or globally (think like `npm install $package --global`). Each filesystem is named after the first address in a bitcoin HD wallet. A git directory is named after the filesystem's bitcoin address.
 
-You can have many filesystems. They're all in the `immutag` director. Each filesystem is named after the first address in a bitcoin HD wallet. A git directory is named after the filesystem's bitcoin address.
+**Default**
+
+On `immutag init` in a directory, immutag only manages the files found recursively in it. It's the equivalent of `git init`.
+
+In the example below, `1LrTst` is the address of the filesystem, which is also bitcoin address. By deafult, there can only be single fileystem.
 
 ```
-immutag
+.immutag
 ├── 1LrTstQYNZj8wCvBgipJqL9zghsofpsHEG
 │   ├── .git
-│   ├── store
+│   ├── version-store
 │   ├── metadata
-├── 1JvFXyZMC31ShnD8PSKgN1HKQ2kGQLVpCt
-│   ├── .git
-│   ├── store
-│   ├── metadata
-├── immutag-file
+│   ├── path-cache
+├── immutag.toml
 
 ```
+
+**Global**
+
+[immutag.toml](#immutag-file), [version-store](#version-store), [metadata](#metadata), [path-cache](#path-cache) and the `.git` will all be explained in a later sections.
+
+On `immutag init --global`, `.immutag` is placed in $HOME, or in some other place specified by the user. Globally, you can have many filesystems. They're all in the `.immutag` directory located by default in $HOME, unless specified otherwise.
+
+```
+.immutag
+├── 1LrTstQYNZj8wCvBgipJqL9zghsofpsHEG
+│   ├── .git
+│   ├── version-store
+│   ├── metadata
+│   ├── path-cache
+├── 1JvFXyZMC31ShnD8PSKgN1HKQ2kGQLVpCt
+│   ├── .git
+│   ├── version-store
+│   ├── metadata
+│   ├── path-cache
+├── immutag.toml
+├──immutag-path-cache
+
+```
+
+`1LrTst` and `1JvFXyZ`, in the above example, are completely seperate filesystems.
+
+All the files shown above, including [immutag-path-cache](#immutag-path-cache), will be explained in a later section.
 
 ### Immutag file
 
-All you need is an immutag-file to initialize an immutag filesystem. The options `ledger`, and so forth, is how to extend the fileystem format to different protocols.
+All you need is an immutag.toml to initialize an immutag filesystem. The options `ledger`, and so forth, is how to extend the fileystem format to different protocols.
 
-$ cat immutag/immutag.toml
+$ cat .immutag/immutag.toml
 
 ```
 ['immutag']
@@ -65,9 +93,9 @@ filehash = "sha256"
 vcs = "git"
 ```
 
-Let's add some filesystems. The other entries represent complete fileystems.
+Let's add some filesystems. Remember, you can only have multiple filesystems when using `--global`.
 
-$ cat immutag/immutag.toml
+$ cat .immutag/immutag.toml
 
 ```
 ['immutag']
@@ -90,9 +118,22 @@ mnemonic ""legal winner thank year wave sausage worth useful legal winner thank 
 
 The keys are bitcoin public address entry points into the respective fileystems. Each filesystem is seperate HD wallet.
 
-### Store
+### Immutag path cache
 
-$ cat 1LrTstQYNZj8wCvBgipJqL9zghsofpsHEG/store
+$ cat .immutag/immutag-path-cache
+
+```
+{bitcoin-fileystem-addr}:  /latest/path/to/a/immutag/local/project/
+{bitcoin-filesystem-addr}: /latest/path/to/a/immutag/local/project/
+```
+
+This data helps keep track of immutag projects spread out on the filesystem from `immutag init`. The user may want to be aware of all tags, not just those globally defined. immutag can also do recursive path searches to discover all immutag projects.
+
+The cache can also be leveraged for file watchers or filesystem hooks (where supported), to assist the user with file modifications.
+
+### Version store
+
+$ cat .immutag/1LrTstQYNZj8wCvBgipJqL9zghsofpsHEG/version-store
 
 ```
 # file-hash: file-addr
@@ -102,9 +143,22 @@ f909e48c4b5b8aeaf45cd6844994b37a0de5c52d43b36410c35d9dd8ae6f9afb: {bitcoin-file-
 ```
 Every file version is keyed by filehash. The file address of each version is the value.
 
+### Path cache
+
+$ cat .immmutag/1LrTstQYNZj8wCvBgipJqL9zghsofpsHEG/path-cache
+
+```
+{bitcoin-file-addr (not version addr)}: /latest/path/to/file
+{bitcoin-file-addr (not version addr)}: /latest/path/to/file
+```
+
+This helps with identifying modified files, along with file hashes, when using `immutag status`.
+
 ### Metadata
 
-$ cat 1LrTstQYNZj8wCvBgipJqL9zghsofpsHEG/metadata
+The metadata layer is seperate to avoid vendor-lock. Here we use recfile format, but some alternative can be used.
+
+$ cat .immutag/1LrTstQYNZj8wCvBgipJqL9zghsofpsHEG/metadata
 
 ```
 # _*_ mode: rec _*_
@@ -115,6 +169,7 @@ $ cat 1LrTstQYNZj8wCvBgipJqL9zghsofpsHEG/metadata
 file_hash: f909e48c4b5b8aeaf45cd6844994b37a0de5c52d43b36410c35d9dd8ae6f9afb
 version_addr: 37gsHDLSG5TJvApGfiUZDaDo9mSr6rjLv6
 content_addr: QmQPRexanRL6pnSPAzC696if49BviGaLNKvC3gp3ApPQmN
+alias: lemonade_stand
 file_type: mp4
 tag_video: 1
 tag_sales: 1
@@ -124,8 +179,8 @@ filehash: 1103def0e9d9036f59b7ef8524791710ed9a6e477b611abb94b0302edf887ee9
 version_addr: n2DoUfi8oUkTALKdd3AvVeTTyWg1AQmXCD
 content_addr: QmQPRexanRL6pnSPAzC696if49BviGaLNKvC3gp3ApPQmN
 file_type: mp4
-metadata: "Best lemonade, ever."
-name: lemonade_stand
+alias: lemonade_stand
+metadata: "Our sales video about the best lemonade, ever."
 tag_video: 1
 tag_sales: 1
 tag_promotional: 1
@@ -135,17 +190,20 @@ tag_lemonade: 1
 ```
 Each version bticoin address is a child address of a Bitcoin hierarchical deterministic wallet. For more details, see [here](#file-versions).
 
+### Git
+
+The `.immutag` directory is under automatic and atomic version control. The user doesn't need to manually commit anything. Other vcs can be dropped into git's place.
+
+Users who which to collaborate on editing immutag files can do so with git. In fact, an entire git repo can be an immutag file be compressing (tar) the git directory. That way collaboraters have a global address to their projects, which point to the preferred hosts, such as Github, Gitlab, or any other alternative.
+
+
 ### File branching
 
 If a file version is considered important enough, a new branch can cheaply be created. A new hardened child bitcoin address is given to it. The forked file version is indicated by an opreturn on the original file. The opreturn has the forked file version's ipfs hash and the bitcoin address of the new branch.
 
-### Bitcoin network
-
-The user can push to bitcoin, which opreturns the latest ipfs addr of the file store.
-
 ### Private network
 
-Collaborators can push and pull to the git repo. A user can reconstruct the git repo from the store entries.
+Collaborators can push and pull to the git repo. A user can reconstruct the git repo from the version-store entries.
 
 ### File discovery services
 
@@ -163,55 +221,102 @@ docker volume create --name=immutag-cargo-data-volume
 ```
 
 ### Usage
-
 Launch.
 
 `docker-compose up`
 
 Test.
 
-`./dev.sh rust test`
+`./dev.sh test rust-lib`
+
+`./dev.sh test rust-bin`
 
 Test a specific case.
 
-`./dev.sh rust test $name`
+`./dev.sh test rust-lib $name`
 
-## Workflow, sort of.
+`./dev.sh test rust-bin $name
 
-There is no `immutag` app, yet. Just throwing ideas around.
+## API ideas
 
-Initializes immutag in the current directory by importing a mnemonic. Can also pass `--xpriv`. The user creates a wallet from a standard bitcoin wallet, then imports it here.
+### Init
 
-`immutag init --mnemonic $MEMONIC`
+#### Current directory
 
-Returns a bitcoin address, the first external one that is, which is immutable. Each address represents a file.
+`$ immutag init`
 
-`immutag new IPFS-ADDR`
+Creates `.immutag/immutag.toml`. Immutag will recursively search for `.immutag`.
 
-Returns the latest external address if you update with a new file version.
+#### Global
 
-`immutag update FIRST-ADDRESS IPFS-ADDR`
+`$ immutag init --global`
 
-To find that file.
+It creates `$HOME/.immutag/`, but with 2 files. `immutag.toml` and `path-helper`.
 
-`tmsu tag ADDRESS Faustina Afterlife`
+`path-cache` simply maps the most recent local paths of versioned files.
 
-Returns immutable bitcoin addresses that correspond to tag 'video', 'Faustina', and 'Afterlife'.
+For an alternate location, `--path`.
 
-`tmsu files video Faustina Afterlife`
+### Create a new or import an existing filesystem to immutag.
 
-Returns the latest ipfs address of the latest file version.
+`$ immutag filesys new --alias $work --mnemonic $mnemonic`
 
-`immutag FIRST-ADDRESS`
+The filesys data is saved to `~/.immutag`.
 
-Plays video, 'Saint Faustina's Visions of the Afterlife'.
+Make a bitcoin wallet with an app you like best. Immutag only needs the mnemonic. It can also use the master extended private key of the wallet, using `--xpriv` option, instead of `--mnemonic`.
 
-`ipfs cat $vidhash | mplayer -vo xv -`
+### Add a new file
 
-Returns all the IPFS addresses corresponding to the address, not just the most-recent.
+`$ immutag file new --ipfs-addr $ipfs-addr --filesys-alias $work`
 
-`immutag ls FIRST-ADDRESS`
+**Nicknamed/aliased files**
 
+`$ immutag file new my-file`
+
+That'll add the file to the default filesystem. The file name will become the nickname in immutag.
+
+### Aliases, add a new file
+
+Name a file by its nickname. You could have added the file with another nickname, so it's not trivial.
+
+`$ ls`
+
+my-file
+
+`$ immutag file new my-file --alias nickname-file`
+
+`$ immutag file alias my-file
+
+nickname-file
+
+And from the full-path it was made from.
+
+`$ immutag file alias --fullpath my-file`
+
+/full/path/nickname-file
+
+When using immutag against your files, say a git project, this is very handy. Even though its an alias, you'll much more easily recognize it rather than a ipfs or bitcoin address.
+
+If you only have an ipfs address of the file version and prefer the non-default filesystem.
+
+### Update a file
+
+`$ immutag update --ipfs-addr IPFS-ADDR --filesys-alias $work`
+
+**Using aliases/nicknames**
+
+`$ immutag update my-file`
+
+### Tag a file.
+
+`$ immutag tag my-file showoff 2020`
+
+### Find a file.
+
+`$ immutag files showoff 2020`
+
+alias    content-addr ledger-addr
+my-file  $ipfs-addr   $bitcoin-addr
 
 ## Handling directories or git projects.
 
@@ -227,9 +332,9 @@ If there's some way to use mfs among several nodes without fully syncing, or I'm
 
 After incrementing the file versions some amount of times the ipfs addresses 'manifest' can be pegged to the bitcoin network. Users decide when to push, like on Github.
 
-A file store is updated and referenced by ipfs address on each file update. That file, or its data, then becomes the latest ipfs 'peg'.
+A file version-store is updated and referenced by ipfs address on each file update. That file, or its data, then becomes the latest ipfs 'peg'.
 
-That file store is version controlled with git.
+That file version-store is version controlled with git.
 
 ## Useful libraries
 

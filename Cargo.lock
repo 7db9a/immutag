@@ -274,6 +274,7 @@ dependencies = [
 name = "immutag"
 version = "0.1.0"
 dependencies = [
+ "clap",
  "immutag-bitcoin",
  "immutag-local-files",
 ]

@@ -2,6 +2,8 @@ pub mod immutag_file;
 
 use immutag_file::{ErrorKind, ImmutagFileError};
 
+pub use immutag_file::Fixture;
+
 pub fn immutag_file_init<T: AsRef<str>>(path: T, version: T) -> Result<(), ImmutagFileError> {
     immutag_file::init(path, version)
 }

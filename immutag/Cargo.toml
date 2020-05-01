@@ -14,5 +14,6 @@ name = "immutag"
 path = "src/mod.rs"
 
 [dependencies]
+clap = "~2.33.0"
 immutag-bitcoin = { path = "../immutag-bitcoin" }
 immutag-local-files = { path = "../immutag-local-files" }

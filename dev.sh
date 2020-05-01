@@ -8,18 +8,33 @@ cargo-build() {
     docker exec \
     -it \
     immutag_coding_1 \
-    cargo build --release
+    cargo build
+}
+
+cargo-bin-build() {
+    docker exec \
+    -it \
+    immutag_coding_1 \
+    cargo build --bin immutag
 }
 
 build() {
     cargo-build
+    cargo-bin-build
 }
 
-run-rust-test() {
+rust-lib-test() {
     docker exec \
     -it \
     immutag_coding_1 \
     cargo test $1 -- --test-threads=1 --nocapture
+}
+
+rust-bin-test() {
+    docker exec \
+    -it \
+    immutag_coding_1 \
+    cargo test --bin $1
 }
 
 run-basic-bsv-test() {
@@ -35,18 +50,26 @@ run-test() {
         run-basic-bsv-test
     fi
 
-    if [ "$1" = "rust" ]; then
-        run-rust-test $2
+    if [ "$1" = "rust-lib" ]; then
+        cargo-bin-build
+        rust-lib-test $2
+    fi
+
+    if [ "$1" = "rust-bin" ]; then
+        cargo-bin-build
+        rust-bin-test $2
     fi
 
     if [ "$1" = "" ]; then
         run-basic-bsv-test
-        run-rust-test
+        cargo-bin-build
+        rust-lib-test
+        rust-bin-test
     fi
 }
 
-if [ "$1" == "build" ]; then
-    echo "build"
+if [ "$1" == "rust-build" ]; then
+    echo "rust build"
     cargo-build
 fi
 
