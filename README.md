@@ -227,11 +227,15 @@ Launch.
 
 Test.
 
-`./dev.sh rust test`
+`./dev.sh test rust-lib`
+
+`./dev.sh test rust-bin`
 
 Test a specific case.
 
-`./dev.sh rust test $name`
+`./dev.sh test rust-lib $name`
+
+`./dev.sh test rust-bin $name
 
 ## API ideas
 
