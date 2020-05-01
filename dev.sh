@@ -51,6 +51,7 @@ run-test() {
     fi
 
     if [ "$1" = "rust-lib" ]; then
+        cargo-bin-build
         rust-lib-test $2
     fi
 
@@ -61,6 +62,7 @@ run-test() {
 
     if [ "$1" = "" ]; then
         run-basic-bsv-test
+        cargo-bin-build
         rust-lib-test
         rust-bin-test
     fi
