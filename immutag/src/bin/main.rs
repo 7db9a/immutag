@@ -108,6 +108,7 @@ mod command_assistors {
 
 #[cfg(test)]
 mod tests {
+    use std::fs::read_to_string;
     use super::{local_files, command_assistors};
     use local_files::Fixture;
     use std::path::Path;
@@ -148,7 +149,14 @@ mod tests {
 
         path_cache.switch_back();
 
+        let immutag_file_content = read_to_string("/tmp/immutag_tests/Immutag/Immutag").unwrap();
+
         fixture.teardown(true);
+
+        assert_eq!(
+            &immutag_file_content,
+            "[\'immutag\']\nversion = \"0.1.0\"\n"
+        );
 
         assert_eq!(
             String::from_utf8_lossy(&output.stdout),
@@ -157,7 +165,7 @@ mod tests {
     }
 
     #[test]
-    fn cli_addfilsystem() {
+    fn cli_addfilesystem() {
         // If you use ./target/debug/[package], it won't
         // reflect any re-compilation the test did.
         // Therefore, using the cargo command to run the
@@ -192,7 +200,14 @@ mod tests {
 
         path_cache.switch_back();
 
+        let immutag_file_content = read_to_string("/tmp/immutag_tests/Immutag/Immutag").unwrap();
+
         fixture.teardown(true);
+
+        assert_eq!(
+            &immutag_file_content,
+            "[\'immutag\']\nversion = \"0.1.0\"\n\n[\'1LrTstQYNZj8wCvBgipJqL9zghsofpsHEG\']\nxpriv = \"xprv9s21ZrQH143K29TJGFSiEAAQM8SMBH2V6x5Aaf9bqvXftrs1v274STWWKfz8svukBLGEQgWqkgRhpt2CNFY89CFaqdsA3gicZeqexk2itxf\"\n"
+        );
 
         assert_eq!(
             String::from_utf8_lossy(&output.stdout),
