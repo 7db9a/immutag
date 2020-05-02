@@ -37,25 +37,32 @@ fn main() {
         .subcommand(
             SubCommand::with_name("file")
                 .subcommand(
-                   SubCommand::with_name("add")
+                   SubCommand::with_name("new")
                        .arg(
-                           Arg::with_name("master-xpriv")
+                           Arg::with_name("FILE")
+                               .required(true)
+                               .index(1)
+                       )
+                       .arg(
+                           Arg::with_name("set-alias")
                                .takes_value(true)
-                               .help("Set the master extended private key of the HD wallet.")
-                               //.required(true)
-                               .long("master-xpriv")
+                               .help("Set an alias for the file.")
+                               .long("alias")
                        ),
                 )
                 .subcommand(
                    SubCommand::with_name("update")
-                        .subcommand(
-                           SubCommand::with_name("alias")
-                               .arg(
-                                   Arg::with_name("ALIAS")
-                                       .required(true)
-                                       .index(1)
-                               ),
-                        )
+                       .arg(
+                           Arg::with_name("FILE")
+                               .required(true)
+                               .index(1)
+                       )
+                       .arg(
+                           Arg::with_name("alias")
+                               .takes_value(true)
+                               .help("Set an alias for the file.")
+                               .long("alias")
+                       ),
                 )
         )
         .get_matches();
