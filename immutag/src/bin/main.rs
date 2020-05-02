@@ -23,18 +23,14 @@ fn main() {
                 .subcommand(
                    SubCommand::with_name("add")
                        .arg(
-                           Arg::with_name("ledger-addr")
-                               .takes_value(true)
-                               .help("Set the ledger address.")
-                               //.required(true)
-                               .long("ledger-addr")
+                           Arg::with_name("LEDGER-ADDR")
+                               .required(true)
+                               .index(1)
                        )
                        .arg(
-                           Arg::with_name("master-xpriv")
-                               .takes_value(true)
-                               .help("Set the master extended private key of the HD wallet.")
-                               //.required(true)
-                               .long("master-xpriv")
+                           Arg::with_name("MASTER-XPRIV")
+                               .required(true)
+                               .index(2)
                        ),
                 )
         )
