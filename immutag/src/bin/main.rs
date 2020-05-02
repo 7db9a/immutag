@@ -21,7 +21,7 @@ fn main() {
         .subcommand(
             SubCommand::with_name("filesys")
                 .subcommand(
-                   SubCommand::with_name("add")
+                   SubCommand::with_name("import")
                        .arg(
                            Arg::with_name("LEDGER-ADDR")
                                .required(true)
@@ -66,25 +66,40 @@ fn main() {
     //    local_files::immutag_file_init(path, "0.1.0");
     //    println!("Initialized immutag in the current directory.");
     //}
-    //if let Some(matches) = matches.subcommand_matches("add-fs") {
-    //    let mut path: &'static str;
-    //    path = "Immutag/";
-    //    let mut ledgeraddr = "";
-    //    if let Some(mut in_ledgeraddr) = matches.values_of("ledger-addr") {
-    //        ledgeraddr = in_ledgeraddr.next().unwrap();
-    //        //println!("Add filesystem: match ledger addr: {:#?}.", ledgeraddr);
-    //    } else {
-    //        println!("Shouldn't be allowed.");
-    //    }
 
-    //    if let Some(mut in_masterxpriv) = matches.values_of("master-xpriv") {
-    //        let masterxpriv = in_masterxpriv.next().unwrap();
-    //        if ledgeraddr != "" {
-    //            local_files::add_filesystem(path, &ledgeraddr, masterxpriv);
-    //            //println!("Add filesystem: match master-xpriv-: {:#?}.", masterxpriv);
-    //            println!("Add filesystem.");
-    //        }
+    if let Some(matches) = matches.subcommand_matches("filesys") {
+        let ledger_addr = matches.value_of("LEDGER-ADDR");
+        let xpriv = matches.value_of("MASTER-XPRIV");
 
-    //    }
-    //}
+        if let Some(l) = ledger_addr {
+            if let Some(x) = xpriv {
+                println!("ledger-addr :{}\nxpriv: {}", l, x);
+            }
+        } else {
+            println!("filsys command fail")
+
+        }
+
+     }
+}
+
+#[cfg(test)]
+mod tests {
+    use std::process::Command;
+
+    #[test]
+    fn cli_addfilesys() {
+        let output = Command::new("/immutag/target/debug/immutag")
+            .arg("filesys")
+            .arg("LEDGER-ADDR")
+            .arg("XPRIV")
+            .output()
+            .expect("failed to execute immutag addfilesys process");
+
+        assert_eq!(
+            String::from_utf8_lossy(&output.stdout),
+            ""
+        );
+    }
+
 }
