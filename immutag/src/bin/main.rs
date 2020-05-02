@@ -68,17 +68,19 @@ fn main() {
     //}
 
     if let Some(matches) = matches.subcommand_matches("filesys") {
-        let ledger_addr = matches.value_of("LEDGER-ADDR");
-        let xpriv = matches.value_of("MASTER-XPRIV");
+        if let Some(matches) = matches.subcommand_matches("import") {
+            let ledger_addr = matches.value_of("LEDGER-ADDR");
+            let xpriv = matches.value_of("MASTER-XPRIV");
 
-        if let Some(l) = ledger_addr {
-            if let Some(x) = xpriv {
-                println!("ledger-addr :{}\nxpriv: {}", l, x);
+            if let Some(l) = ledger_addr {
+                if let Some(x) = xpriv {
+                    println!("ledger-addr :{}\nxpriv: {}", l, x);
+                }
+            } else {
+                println!("filesys command fail")
+
             }
-        } else {
-            println!("filsys command fail")
-
-        }
+         }
 
      }
 }
@@ -91,6 +93,7 @@ mod tests {
     fn cli_addfilesys() {
         let output = Command::new("/immutag/target/debug/immutag")
             .arg("filesys")
+            .arg("import")
             .arg("LEDGER-ADDR")
             .arg("XPRIV")
             .output()
@@ -98,7 +101,7 @@ mod tests {
 
         assert_eq!(
             String::from_utf8_lossy(&output.stdout),
-            ""
+            "ledger-addr :LEDGER-ADDR\nxpriv: XPRIV\n"
         );
     }
 
