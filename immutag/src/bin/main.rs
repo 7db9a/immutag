@@ -54,16 +54,41 @@ fn main() {
                        .subcommand(
                           SubCommand::with_name("tag")
                               .arg(
-                                  Arg::with_name("FILE")
+                                  Arg::with_name("TAG")
                                       .required(true)
                                       .index(1)
                               )
                               .arg(
-                                  Arg::with_name("set-alias")
-                                      .takes_value(true)
-                                      .help("Set an alias for the file.")
-                                      .long("alias")
-                              ),
+                                  Arg::with_name("FILE")
+                                      .required(true)
+                                      .index(2)
+                              )
+                       )
+                       .subcommand(
+                          SubCommand::with_name("type")
+                              .arg(
+                                  Arg::with_name("FILE-TYPE")
+                                      .required(true)
+                                      .index(1)
+                              )
+                              .arg(
+                                  Arg::with_name("FILE")
+                                      .required(true)
+                                      .index(2)
+                              )
+                       )
+                       .subcommand(
+                          SubCommand::with_name("msg")
+                              .arg(
+                                  Arg::with_name("MESSAGE")
+                                      .required(true)
+                                      .index(1)
+                              )
+                              .arg(
+                                  Arg::with_name("FILE")
+                                      .required(true)
+                                      .index(2)
+                              )
                        )
                 )
                 .subcommand(
@@ -121,6 +146,15 @@ fn main() {
                 } else {
                     println!("file command fail")
 
+                }
+            }
+            if let Some(matches) = matches.subcommand_matches("tag") {
+                let tag = matches.value_of("TAG");
+                let file = matches.value_of("FILE");
+                if let Some(t) = tag {
+                    if let Some(f) = file {
+                        println!("file: {}\ntag: {}", f, t);
+                    }
                 }
             }
          }
@@ -189,6 +223,23 @@ mod tests {
         assert_eq!(
             String::from_utf8_lossy(&output_option_position.stdout),
             "file: FILE\nalias: ALIAS\n"
+        );
+    }
+
+    #[test]
+    fn cli_addtag() {
+        let output = Command::new("/immutag/target/debug/immutag")
+            .arg("file")
+            .arg("add")
+            .arg("tag")
+            .arg("TAG")
+            .arg("FILE")
+            .output()
+            .expect("failed to execute immutag add tag process");
+
+        assert_eq!(
+            String::from_utf8_lossy(&output.stdout),
+            "file: FILE\ntag: TAG\n"
         );
     }
 }

@@ -306,8 +306,8 @@ Add metadata on the file.
 
 ```
 $ immutag file add tag TAG FILE
-$ immutag file add file-type FILE-TYPE FILE
-$ immutag file add message MESSAGE FILE
+$ immutag file add type FILE-TYPE FILE
+$ immutag file add msg MESSAGE FILE
 ```
 
 Update metadata on the file.
