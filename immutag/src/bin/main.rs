@@ -37,9 +37,22 @@ fn main() {
         .subcommand(
             SubCommand::with_name("file")
                 .subcommand(
-                   SubCommand::with_name("new")
+                   SubCommand::with_name("add")
                        .subcommand(
                           SubCommand::with_name("content")
+                              .arg(
+                                  Arg::with_name("FILE")
+                                      .required(true)
+                              )
+                              .arg(
+                                  Arg::with_name("set-alias")
+                                      .takes_value(true)
+                                      .help("Set an alias for the file.")
+                                      .long("alias")
+                              ),
+                       )
+                       .subcommand(
+                          SubCommand::with_name("tag")
                               .arg(
                                   Arg::with_name("FILE")
                                       .required(true)
@@ -92,7 +105,27 @@ fn main() {
             }
          }
 
-     }
+    }
+
+    if let Some(matches) = matches.subcommand_matches("file") {
+        if let Some(matches) = matches.subcommand_matches("add") {
+            if let Some(matches) = matches.subcommand_matches("content") {
+                let file = matches.value_of("FILE");
+                let alias = matches.value_of("set-alias");
+                if let Some(f) = file {
+                    if let Some(a) = alias {
+                        println!("file: {}\nalias: {}", f, a);
+                    } else {
+                        println!("file: {}", f);
+                    }
+                } else {
+                    println!("file command fail")
+
+                }
+            }
+         }
+
+    }
 }
 
 #[cfg(test)]
@@ -100,7 +133,7 @@ mod tests {
     use std::process::Command;
 
     #[test]
-    fn cli_addfilesys() {
+    fn cli_importfilesys() {
         let output = Command::new("/immutag/target/debug/immutag")
             .arg("filesys")
             .arg("import")
@@ -115,4 +148,47 @@ mod tests {
         );
     }
 
+    #[test]
+    fn cli_addfile() {
+        let output_no_option = Command::new("/immutag/target/debug/immutag")
+            .arg("file")
+            .arg("add")
+            .arg("content")
+            .arg("FILE")
+            .output()
+            .expect("failed to execute immutag addfilesys process");
+
+        let output_option = Command::new("/immutag/target/debug/immutag")
+            .arg("file")
+            .arg("add")
+            .arg("content")
+            .arg("--alias")
+            .arg("ALIAS")
+            .arg("FILE")
+            .output()
+            .expect("failed to execute immutag addfilesys process");
+
+        let output_option_position = Command::new("/immutag/target/debug/immutag")
+            .arg("file")
+            .arg("add")
+            .arg("content")
+            .arg("FILE")
+            .arg("--alias") // Optional arg after required arg.
+            .arg("ALIAS")
+            .output()
+            .expect("failed to execute immutag addfilesys process");
+
+        assert_eq!(
+            String::from_utf8_lossy(&output_no_option.stdout),
+            "file: FILE\n"
+        );
+        assert_eq!(
+            String::from_utf8_lossy(&output_option.stdout),
+            "file: FILE\nalias: ALIAS\n"
+        );
+        assert_eq!(
+            String::from_utf8_lossy(&output_option_position.stdout),
+            "file: FILE\nalias: ALIAS\n"
+        );
+    }
 }

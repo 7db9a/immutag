@@ -276,7 +276,7 @@ For an alternate location, `--path`.
 
 The filesys data is saved to `~/.immutag`.
 
-`$ immutag file new content FILE
+`$ immutag file add content FILE
 
 
 Update a file version.
