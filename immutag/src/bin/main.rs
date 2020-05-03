@@ -156,7 +156,7 @@ mod tests {
             .arg("content")
             .arg("FILE")
             .output()
-            .expect("failed to execute immutag addfilesys process");
+            .expect("failed to execute immutag add content process");
 
         let output_option = Command::new("/immutag/target/debug/immutag")
             .arg("file")
@@ -166,7 +166,7 @@ mod tests {
             .arg("ALIAS")
             .arg("FILE")
             .output()
-            .expect("failed to execute immutag addfilesys process");
+            .expect("failed to execute immutag add content process");
 
         let output_option_position = Command::new("/immutag/target/debug/immutag")
             .arg("file")
@@ -176,7 +176,7 @@ mod tests {
             .arg("--alias") // Optional arg after required arg.
             .arg("ALIAS")
             .output()
-            .expect("failed to execute immutag addfilesys process");
+            .expect("failed to execute immutag add content process");
 
         assert_eq!(
             String::from_utf8_lossy(&output_no_option.stdout),
