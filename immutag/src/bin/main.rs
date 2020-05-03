@@ -38,17 +38,20 @@ fn main() {
             SubCommand::with_name("file")
                 .subcommand(
                    SubCommand::with_name("new")
-                       .arg(
-                           Arg::with_name("FILE")
-                               .required(true)
-                               .index(1)
+                       .subcommand(
+                          SubCommand::with_name("content")
+                              .arg(
+                                  Arg::with_name("FILE")
+                                      .required(true)
+                                      .index(1)
+                              )
+                              .arg(
+                                  Arg::with_name("set-alias")
+                                      .takes_value(true)
+                                      .help("Set an alias for the file.")
+                                      .long("alias")
+                              ),
                        )
-                       .arg(
-                           Arg::with_name("set-alias")
-                               .takes_value(true)
-                               .help("Set an alias for the file.")
-                               .long("alias")
-                       ),
                 )
                 .subcommand(
                    SubCommand::with_name("update")
