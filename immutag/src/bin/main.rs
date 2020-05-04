@@ -167,6 +167,10 @@ mod tests {
     use std::process::Command;
 
     #[test]
+    fn cli_init() {
+    }
+
+    #[test]
     fn cli_importfilesys() {
         let output = Command::new("/immutag/target/debug/immutag")
             .arg("filesys")
