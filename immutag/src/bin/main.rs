@@ -286,7 +286,7 @@ mod tests {
 
         assert_eq!(
             String::from_utf8_lossy(&output.stdout),
-            "Initialized immutag in.\n"
+            "Initialized immutag in here.\n"
         );
     }
 
