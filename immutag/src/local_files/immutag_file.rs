@@ -1,5 +1,5 @@
 use immutag_local_files::{value, Document, common, read_to_string};
-pub use common::{Fixture, directorate};
+pub use common::{Fixture, directorate, command_assistors};
 pub use immutag_local_files::{ErrorKind, ImmutagFileError, ImmutagFileState};
 
 // get_nickname

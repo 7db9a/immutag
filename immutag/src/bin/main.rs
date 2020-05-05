@@ -178,42 +178,11 @@ fn main() {
     }
 }
 
-/// Switch back and forth between paths when executing test commands.
-mod command_assistors {
-    use std::env;
-    use std::path::Path;
-
-    pub struct PathCache<'s> {
-        from_path: Box<Path>,
-        to_path: &'s Path,
-    }
-
-    impl<'s> PathCache<'s> {
-        pub fn new(to_path: &Path) -> PathCache {
-            let current_dir = env::current_dir().expect("failed to get current dir");
-            let from_path = current_dir.into_boxed_path();
-
-            PathCache { from_path, to_path }
-        }
-
-        pub fn switch(&mut self) {
-            if env::set_current_dir(&self.to_path).is_err() {
-                panic!("failed to switch back to original dir")
-            }
-        }
-
-        pub fn switch_back(&mut self) {
-            if env::set_current_dir(&self.from_path).is_err() {
-                panic!("failed to switch back to original dir")
-            }
-        }
-    }
-}
-
 #[cfg(test)]
 mod tests {
     use std::fs::read_to_string;
-    use super::{local_files, command_assistors};
+    use super::{local_files};
+    use local_files::command_assistors;
     use local_files::Fixture;
     use std::path::Path;
     use std::process::Command;
