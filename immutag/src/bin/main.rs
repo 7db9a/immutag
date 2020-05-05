@@ -132,11 +132,11 @@ fn main() {
             if let Some(l) = ledger_addr {
                 if let Some(x) = xpriv {
                     if let Some(p) = path {
-                        println!("ledger-addr :{}\nxpriv: {}", l, x);
+                        println!("Adding filesys {}", l);
                         local_files::add_filesystem(p, l, x);
                     } else {
                         let current_path = "";
-                        println!("ledger-addr :{}\nxpriv: {}", l, x);
+                        println!("Adding filesys {}", l);
                         local_files::add_filesystem(current_path, l, x);
                     }
                 }
@@ -302,7 +302,7 @@ mod tests {
     }
 
     #[test]
-    fn cli_output_importfilesys() {
+    fn cli_importfilesys() {
         let test_path = std::path::Path::new("/tmp/immutag_tests");
         let mut test_path_string = test_path.to_str().unwrap().to_string();
 
@@ -345,10 +345,10 @@ mod tests {
             "[\'immutag\']\nversion = \"0.1.0\"\n\n[\'1LrTstQYNZj8wCvBgipJqL9zghsofpsHEG\']\nxpriv = \"XPRIV\"\n"
         );
 
-        //assert_eq!(
-        //    String::from_utf8_lossy(&output_filesys_import.stdout),
-        //    "ledger-addr :1LrTstQYNZj8wCvBgipJqL9zghsofpsHEG\nxpriv: XPRIV\n"
-        //);
+        assert_eq!(
+            String::from_utf8_lossy(&output_filesys_import.stdout),
+            "Adding filesys 1LrTstQYNZj8wCvBgipJqL9zghsofpsHEG\n"
+        );
 
         assert_eq!(xpriv.unwrap(), "XPRIV");
     }
