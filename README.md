@@ -62,17 +62,30 @@ On `immutag init --global`, `.immutag` is placed in $HOME, or in some other plac
 ├── 1LrTstQYNZj8wCvBgipJqL9zghsofpsHEG
 │   ├── .git
 │   ├── version-store
-│   ├── metadata
+│   │   ├── $file-main-addr
+│   │   │   ├── versions-file
+│   │   │   ├── metadata-file
+│   │   ├── $file-main-addr
+│   │   │   ├── versions-file
+│   │   │   ├── metadata-file
+│   ├── filesys-metadata
 │   ├── path-cache
 ├── 1JvFXyZMC31ShnD8PSKgN1HKQ2kGQLVpCt
 │   ├── .git
 │   ├── version-store
+│   │   ├── $file-main-addr
+│   │   │   ├── versions-file
+│   │   │   ├── metadata-file
+│   ├── filesys-metadata
+│   ├── path-cache
 │   ├── metadata
 │   ├── path-cache
 ├── immutag.toml
 ├──immutag-path-cache
 
 ```
+
+***Each file gets its own version-file and metadata-file. No point in giving read-only users all the versions and metadata on the filesystem.***
 
 `1LrTst` and `1JvFXyZ`, in the above example, are completely seperate filesystems.
 
@@ -133,7 +146,7 @@ The cache can also be leveraged for file watchers or filesystem hooks (where sup
 
 ### Version store
 
-$ cat .immutag/1LrTstQYNZj8wCvBgipJqL9zghsofpsHEG/version-store
+$ cat .immutag/1LrTstQYNZj8wCvBgipJqL9zghsofpsHEG/$file-main-addr/versions-file
 
 ```
 # file-hash: file-addr
@@ -158,7 +171,7 @@ This helps with identifying modified files, along with file hashes, when using `
 
 The metadata layer is seperate to avoid vendor-lock. Here we use recfile format, but some alternative can be used.
 
-$ cat .immutag/1LrTstQYNZj8wCvBgipJqL9zghsofpsHEG/metadata
+$ cat .immutag/1LrTstQYNZj8wCvBgipJqL9zghsofpsHEG/$file-main-addr/metadata-file
 
 ```
 # _*_ mode: rec _*_
@@ -259,41 +272,54 @@ For an alternate location, `--path`.
 
 ### Create a new or import an existing filesystem to immutag.
 
-`$ immutag filesys new --alias $work --mnemonic $mnemonic`
+`$ immutag filesys import LEDGER-ADDR MASTER-XPRIV`
 
 The filesys data is saved to `~/.immutag`.
 
-Make a bitcoin wallet with an app you like best. Immutag only needs the mnemonic. It can also use the master extended private key of the wallet, using `--xpriv` option, instead of `--mnemonic`.
+`$ immutag file add content FILE
 
-### Add a new file
 
-`$ immutag file new --ipfs-addr $ipfs-addr --filesys-alias $work`
+Update a file version.
 
-**Nicknamed/aliased files**
+```
+$ immutag file update content FILE --alias ALIAS
+$ immutag file update content FILE --ledger-addr LEDGER-ADDR
+```
 
-`$ immutag file new my-file`
+Shows any modifications, such as file names that changed or unrecognized files. Also shows staged changes, ready to be commited.
 
-That'll add the file to the default filesystem. The file name will become the nickname in immutag.
+```
+$ immutag filesys status FILESYS
+$ immmutage file status FILE
+```
 
-### Aliases, add a new file
+file-name alias ledger-addr ipfs-addr
 
-Name a file by its nickname. You could have added the file with another nickname, so it's not trivial.
+It's all implicity a dry-run, like git. You'll have to explicitly make changes.
 
-`$ ls`
+```
+$ immutag file comit FILE
+$ immutag filesys commit FILESYS
+```
 
-my-file
+Add metadata on the file.
 
-`$ immutag file new my-file --alias nickname-file`
+```
+$ immutag file add tag TAG FILE
+$ immutag file add type FILE-TYPE FILE
+$ immutag file add msg MESSAGE FILE
+```
 
-`$ immutag file alias my-file
+Update metadata on the file.
 
-nickname-file
+```
+$ immutag file update file-type FILE-TYPE FILE
+$ immutag file update message MESSAGE FILE
+```
 
-And from the full-path it was made from.
+Delete tag on the file.
 
-`$ immutag file alias --fullpath my-file`
-
-/full/path/nickname-file
+`$ immutag file remove tag TAG FILE`
 
 When using immutag against your files, say a git project, this is very handy. Even though its an alias, you'll much more easily recognize it rather than a ipfs or bitcoin address.
 
@@ -301,7 +327,7 @@ If you only have an ipfs address of the file version and prefer the non-default 
 
 ### Update a file
 
-`$ immutag update --ipfs-addr IPFS-ADDR --filesys-alias $work`
+`$ immutag file update --ipfs-addr IPFS-ADDR --filesys-alias $work`
 
 **Using aliases/nicknames**
 

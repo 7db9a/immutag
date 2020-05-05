@@ -5,74 +5,178 @@ extern crate immutag;
 use clap::{App, Arg, SubCommand};
 use immutag::{bitcoin, local_files};
 
+
 fn main() {
     let matches = App::new("immutag")
         .version(crate_version!())
         .subcommand(
             SubCommand::with_name("init")
-                .about("Initialize immutag filesystems.")
-        )
-        .subcommand(
-            SubCommand::with_name("add-fs")
-                .about("Add filesystem.")
                 .arg(
-                    Arg::with_name("ledger-addr")
-                        .takes_value(true)
-                        .help("Set the address to the filesystem from the HD wallet (e.g. Bitcoin).")
-                        //.required(true)
-                        .long("ledger-addr")
-                )
-                .arg(
-                    Arg::with_name("master-xpriv")
-                        .takes_value(true)
-                        .help("Set the master extended private key of the HD wallet.")
-                        //.required(true)
-                        .long("master-xpriv")
+                    Arg::with_name("PATH")
+                    .index(1)
                 ),
         )
+        .subcommand(
+            SubCommand::with_name("filesys")
+                .subcommand(
+                   SubCommand::with_name("import")
+                       .arg(
+                           Arg::with_name("LEDGER-ADDR")
+                               .required(true)
+                               .index(1)
+                       )
+                       .arg(
+                           Arg::with_name("MASTER-XPRIV")
+                               .required(true)
+                               .index(2)
+                       )
+                       .arg(
+                           Arg::with_name("PATH")
+                               .index(3)
+                       ),
+                )
+        )
+        .subcommand(
+            SubCommand::with_name("file")
+                .subcommand(
+                   SubCommand::with_name("add")
+                       .subcommand(
+                          SubCommand::with_name("content")
+                              .arg(
+                                  Arg::with_name("FILE")
+                                      .required(true)
+                              )
+                              .arg(
+                                  Arg::with_name("set-alias")
+                                      .takes_value(true)
+                                      .help("Set an alias for the file.")
+                                      .long("alias")
+                              ),
+                       )
+                       .subcommand(
+                          SubCommand::with_name("tag")
+                              .arg(
+                                  Arg::with_name("TAG")
+                                      .required(true)
+                                      .index(1)
+                              )
+                              .arg(
+                                  Arg::with_name("FILE")
+                                      .required(true)
+                                      .index(2)
+                              )
+                       )
+                       .subcommand(
+                          SubCommand::with_name("type")
+                              .arg(
+                                  Arg::with_name("FILE-TYPE")
+                                      .required(true)
+                                      .index(1)
+                              )
+                              .arg(
+                                  Arg::with_name("FILE")
+                                      .required(true)
+                                      .index(2)
+                              )
+                       )
+                       .subcommand(
+                          SubCommand::with_name("msg")
+                              .arg(
+                                  Arg::with_name("MESSAGE")
+                                      .required(true)
+                                      .index(1)
+                              )
+                              .arg(
+                                  Arg::with_name("FILE")
+                                      .required(true)
+                                      .index(2)
+                              )
+                       )
+                )
+                .subcommand(
+                   SubCommand::with_name("update")
+                       .arg(
+                           Arg::with_name("FILE")
+                               .required(true)
+                               .index(1)
+                       )
+                       .arg(
+                           Arg::with_name("alias")
+                               .takes_value(true)
+                               .help("Set an alias for the file.")
+                               .long("alias")
+                       ),
+                )
+        )
         .get_matches();
+
     if let Some(matches) = matches.subcommand_matches("init") {
-        let mut path: &'static str;
-        path = "Immutag/";
-        local_files::immutag_file_init(path, "0.1.0");
-        println!("Initialized immutag in the current directory.");
-    }
-    if let Some(matches) = matches.subcommand_matches("add-fs") {
-        let mut path: &'static str;
-        path = "Immutag/";
-        let mut ledgeraddr = "";
-        if let Some(mut in_ledgeraddr) = matches.values_of("ledger-addr") {
-            ledgeraddr = in_ledgeraddr.next().unwrap();
-            //println!("Add filesystem: match ledger addr: {:#?}.", ledgeraddr);
+        let mut path = matches.value_of("PATH");
+        if let Some(p) = path {
+            let mut path = local_files::directorate(p.to_string());
+            local_files::immutag_file_init(path, "0.1.0".to_string());
+            println!("Initialized immutag in {}.", p);
         } else {
-            println!("Shouldn't be allowed.");
-        }
-
-        if let Some(mut in_masterxpriv) = matches.values_of("master-xpriv") {
-            let masterxpriv = in_masterxpriv.next().unwrap();
-            if ledgeraddr != "" {
-                local_files::add_filesystem(path, &ledgeraddr, masterxpriv);
-                //println!("Add filesystem: match master-xpriv-: {:#?}.", masterxpriv);
-                println!("Add filesystem.");
-            }
+            local_files::immutag_file_init("", "0.1.0");
+            println!("Initialized immutag in the current directory.")
 
         }
     }
 
-    // If we set the multiple() option of a flag we can check how many times the user specified
-    //
-    // Note: if we did not specify the multiple() option, and the user used "awesome" we would get
-    // a 1 (no matter how many times they actually used it), or a 0 if they didn't use it at all
-    //match matches.occurrences_of("awesome") {
-    //    0 => println!("Nothing is awesome"),
-    //    1 => println!("Some things are awesome"),
-    //    2 => println!("Lots of things are awesome"),
-    //    3 | _ => println!("EVERYTHING is awesome!"),
-    //}
+    if let Some(matches) = matches.subcommand_matches("filesys") {
+        if let Some(matches) = matches.subcommand_matches("import") {
+            let ledger_addr = matches.value_of("LEDGER-ADDR");
+            let xpriv = matches.value_of("MASTER-XPRIV");
+            let path = matches.value_of("PATH");
 
-    // Continued program logic goes here...
+            if let Some(l) = ledger_addr {
+                if let Some(x) = xpriv {
+                    if let Some(p) = path {
+                        println!("Adding filesys {}", l);
+                        local_files::add_filesystem(p, l, x);
+                    } else {
+                        let current_path = "";
+                        println!("Adding filesys {}", l);
+                        local_files::add_filesystem(current_path, l, x);
+                    }
+                }
+            } else {
+                println!("filesys command fail")
+
+            }
+         }
+
+    }
+
+    if let Some(matches) = matches.subcommand_matches("file") {
+        if let Some(matches) = matches.subcommand_matches("add") {
+            if let Some(matches) = matches.subcommand_matches("content") {
+                let file = matches.value_of("FILE");
+                let alias = matches.value_of("set-alias");
+                if let Some(f) = file {
+                    if let Some(a) = alias {
+                        println!("file: {}\nalias: {}", f, a);
+                    } else {
+                        println!("file: {}", f);
+                    }
+                } else {
+                    println!("file command fail")
+
+                }
+            }
+            if let Some(matches) = matches.subcommand_matches("tag") {
+                let tag = matches.value_of("TAG");
+                let file = matches.value_of("FILE");
+                if let Some(t) = tag {
+                    if let Some(f) = file {
+                        println!("file: {}\ntag: {}", f, t);
+                    }
+                }
+            }
+         }
+
+    }
 }
-
 
 /// Switch back and forth between paths when executing test commands.
 mod command_assistors {
@@ -115,16 +219,6 @@ mod tests {
     use std::process::Command;
 
     #[test]
-    fn echo() {
-        let output = Command::new("echo")
-            .arg("test")
-            .output()
-            .expect("failed to execute process");
-
-        assert_eq!(String::from_utf8_lossy(&output.stdout), ("test\n"))
-    }
-
-    #[test]
     fn cli_init() {
         // If you use ./target/debug/[package], it won't
         // reflect any re-compilation the test did.
@@ -149,7 +243,7 @@ mod tests {
 
         path_cache.switch_back();
 
-        let immutag_file_content = read_to_string("/tmp/immutag_tests/Immutag/Immutag").unwrap();
+        let immutag_file_content = read_to_string("/tmp/immutag_tests/.immutag/Immutag").unwrap();
 
         fixture.teardown(true);
 
@@ -165,16 +259,18 @@ mod tests {
     }
 
     #[test]
-    fn cli_addfilesystem() {
+    fn cli_init_path() {
         // If you use ./target/debug/[package], it won't
         // reflect any re-compilation the test did.
         // Therefore, using the cargo command to run the
         // package binary is best.
 
         let test_path = std::path::Path::new("/tmp/immutag_tests");
+        let mut test_path_string = test_path.to_str().unwrap().to_string();
 
+        let mut test_path_string = local_files::directorate(test_path_string.clone());
         let mut fixture = Fixture::new()
-           .add_dirpath(test_path.to_str().unwrap().to_string())
+           .add_dirpath(test_path_string + "here")
            .build();
 
         let mut path_cache = command_assistors::PathCache::new(&test_path);
@@ -184,34 +280,137 @@ mod tests {
 
         let output = Command::new("/immutag/target/debug/immutag")
             .arg("init")
+            .arg("here")
             .output()
             .expect("failed to execute immutag init process");
 
-        let few_ms = std::time::Duration::from_millis(3000);
-        std::thread::sleep(few_ms);
-        let output = Command::new("/immutag/target/debug/immutag")
-            .arg("add-fs")
-            .arg("--ledger-addr")
-            .arg("1LrTstQYNZj8wCvBgipJqL9zghsofpsHEG")
-            .arg("--master-xpriv")
-            .arg("xprv9s21ZrQH143K29TJGFSiEAAQM8SMBH2V6x5Aaf9bqvXftrs1v274STWWKfz8svukBLGEQgWqkgRhpt2CNFY89CFaqdsA3gicZeqexk2itxf")
-            .output()
-            .expect("failed to execute immutag add-fs process");
-
         path_cache.switch_back();
 
-        let immutag_file_content = read_to_string("/tmp/immutag_tests/Immutag/Immutag").unwrap();
+        let immutag_file_content = read_to_string("/tmp/immutag_tests/here/.immutag/Immutag").unwrap();
 
         fixture.teardown(true);
 
         assert_eq!(
             &immutag_file_content,
-            "[\'immutag\']\nversion = \"0.1.0\"\n\n[\'1LrTstQYNZj8wCvBgipJqL9zghsofpsHEG\']\nxpriv = \"xprv9s21ZrQH143K29TJGFSiEAAQM8SMBH2V6x5Aaf9bqvXftrs1v274STWWKfz8svukBLGEQgWqkgRhpt2CNFY89CFaqdsA3gicZeqexk2itxf\"\n"
+            "[\'immutag\']\nversion = \"0.1.0\"\n"
         );
 
         assert_eq!(
             String::from_utf8_lossy(&output.stdout),
-            "Add filesystem.\n"
+            "Initialized immutag in here.\n"
+        );
+    }
+
+    #[test]
+    fn cli_importfilesys() {
+        let test_path = std::path::Path::new("/tmp/immutag_tests");
+        let mut test_path_string = test_path.to_str().unwrap().to_string();
+
+        let mut test_path_string = local_files::directorate(test_path_string.clone());
+        let mut fixture = Fixture::new()
+           .add_dirpath(test_path_string.clone())
+           .build();
+
+        let mut path_cache = command_assistors::PathCache::new(&test_path);
+
+        // Changing directories.
+        path_cache.switch();
+
+        let output_init = Command::new("/immutag/target/debug/immutag")
+            .arg("init")
+            .output()
+            .expect("failed to execute immutag init process");
+
+        let output_filesys_import = Command::new("/immutag/target/debug/immutag")
+            .arg("filesys")
+            .arg("import")
+            .arg("1LrTstQYNZj8wCvBgipJqL9zghsofpsHEG")
+            .arg("XPRIV")
+            .output()
+            .expect("failed to execute immutag addfilesys process");
+
+        path_cache.switch_back();
+
+        let immutag_file_content = read_to_string("/tmp/immutag_tests/.immutag/Immutag").unwrap();
+
+        let xpriv = local_files::get_xpriv(
+            test_path_string,
+            "1LrTstQYNZj8wCvBgipJqL9zghsofpsHEG".to_string()
+        );
+
+        fixture.teardown(true);
+
+        assert_eq!(
+            &immutag_file_content,
+            "[\'immutag\']\nversion = \"0.1.0\"\n\n[\'1LrTstQYNZj8wCvBgipJqL9zghsofpsHEG\']\nxpriv = \"XPRIV\"\n"
+        );
+
+        assert_eq!(
+            String::from_utf8_lossy(&output_filesys_import.stdout),
+            "Adding filesys 1LrTstQYNZj8wCvBgipJqL9zghsofpsHEG\n"
+        );
+
+        assert_eq!(xpriv.unwrap(), "XPRIV");
+    }
+
+    #[test]
+    fn cli_output_addfile() {
+        let output_no_option = Command::new("/immutag/target/debug/immutag")
+            .arg("file")
+            .arg("add")
+            .arg("content")
+            .arg("FILE")
+            .output()
+            .expect("failed to execute immutag add content process");
+
+        let output_option = Command::new("/immutag/target/debug/immutag")
+            .arg("file")
+            .arg("add")
+            .arg("content")
+            .arg("--alias")
+            .arg("ALIAS")
+            .arg("FILE")
+            .output()
+            .expect("failed to execute immutag add content process");
+
+        let output_option_position = Command::new("/immutag/target/debug/immutag")
+            .arg("file")
+            .arg("add")
+            .arg("content")
+            .arg("FILE")
+            .arg("--alias") // Optional arg after required arg.
+            .arg("ALIAS")
+            .output()
+            .expect("failed to execute immutag add content process");
+
+        assert_eq!(
+            String::from_utf8_lossy(&output_no_option.stdout),
+            "file: FILE\n"
+        );
+        assert_eq!(
+            String::from_utf8_lossy(&output_option.stdout),
+            "file: FILE\nalias: ALIAS\n"
+        );
+        assert_eq!(
+            String::from_utf8_lossy(&output_option_position.stdout),
+            "file: FILE\nalias: ALIAS\n"
+        );
+    }
+
+    #[test]
+    fn cli_output_addtag() {
+        let output = Command::new("/immutag/target/debug/immutag")
+            .arg("file")
+            .arg("add")
+            .arg("tag")
+            .arg("TAG")
+            .arg("FILE")
+            .output()
+            .expect("failed to execute immutag add tag process");
+
+        assert_eq!(
+            String::from_utf8_lossy(&output.stdout),
+            "file: FILE\ntag: TAG\n"
         );
     }
 }

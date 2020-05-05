@@ -499,8 +499,8 @@ mod integration {
 
     #[test]
     fn immutagfile_init() {
-        let path = ".immutag/.immutag_tests";
-        let gpath = ".immutag/.immutag_tests/Immutag";
+        let path = "/tmp/immutag_tests";
+        let gpath = "/tmp/immutag_tests/Immutag";
         let mut fixture = setup_test(path, "0.1.0");
         let doc = open(gpath).unwrap();
         let is_valid = is_valid(&doc);
@@ -515,8 +515,8 @@ version = "0.1.0"
 
     #[test]
     fn immutagfile_add_entry() {
-        let path = ".immutag/.immutag_tests";
-        let gpath = ".immutag/.immutag_tests/Immutag";
+        let path = "/tmp/immutag_tests";
+        let gpath = "/tmp/immutag_tests/Immutag";
         let mut fixture = setup_test(path, "0.1.0");
         let doc = open(gpath).unwrap();
         let doc = add_entry(
@@ -534,8 +534,8 @@ version = "0.1.0"
 
     #[test]
     fn immutagfile_error_add_entry() {
-        let path = ".immutag/.immutag_tests";
-        let gpath = ".immutag/.immutag_tests/Immutag";
+        let path = "/tmp/immutag_tests";
+        let gpath = "/tmp/immutag_tests/Immutag";
         let mut fixture = setup_test(path, "0.1.0");
         let (doc, immutag) = setup_add(gpath);
 
@@ -556,8 +556,8 @@ version = "0.1.0"
 
     #[test]
     fn immutagfile_error_update_entry() {
-        let path = ".immutag/.immutag_tests";
-        let gpath = ".immutag/.immutag_tests/Immutag";
+        let path = "/tmp/immutag_tests";
+        let gpath = "/tmp/immutag_tests/Immutag";
         let mut fixture = setup_test(path, "0.1.0");
         let doc = open(gpath).unwrap();
         let result = update_entry(
@@ -575,8 +575,8 @@ version = "0.1.0"
     // Verifies there is no unexpected whitespace or formatting issuees for a basic case.
     #[test]
     fn format_immutagfile_file_add_entry() {
-        let path = ".immutag/.immutag_tests";
-        let gpath = ".immutag/.immutag_tests/Immutag";
+        let path = "/tmp/immutag_tests";
+        let gpath = "/tmp/immutag_tests/Immutag";
         let mut fixture = setup_test(path, "0.1.0");
         let (_, _) = setup_add(gpath);
 
@@ -602,8 +602,8 @@ xpriv = "XPRIV"
 
     #[test]
     fn immutagfile_entry_exists() {
-        let path = ".immutag/.immutag_tests";
-        let gpath = ".immutag/.immutag_tests/Immutag";
+        let path = "/tmp/immutag_tests";
+        let gpath = "/tmp/immutag_tests/Immutag";
         let mut fixture = setup_test(path, "0.1.0");
         let (doc, _) = setup_add(gpath);
 
@@ -620,8 +620,8 @@ xpriv = "XPRIV"
 
     #[test]
     fn immutagfile_update_entry() {
-        let path = ".immutag/.immutag_tests";
-        let gpath = ".immutag/.immutag_tests/Immutag";
+        let path = "/tmp/immutag_tests";
+        let gpath = "/tmp/immutag_tests/Immutag";
         let mut fixture = setup_test(path, "0.1.0");
         let (doc, immutag_res) = setup_add(gpath);
         // Focus of test.
@@ -670,7 +670,7 @@ xpriv = "XPRIV"
 
      #[test]
      fn immutagfile_delete_entry_thorough_assert() {
-         let path = ".immutag/.immutag_tests";
+         let path = "/tmp/immutag_tests";
          helper_immutagfile_delete_entry_thorough_check(path);
 
          Fixture::new().add_dirpath(path.to_string()).teardown(true);
@@ -679,8 +679,8 @@ xpriv = "XPRIV"
 
     #[test]
     fn immutagfile_delete_file_entry() {
-        let path = ".immutag/.immutag_tests";
-        let gpath = ".immutag/.immutag_tests/Immutag";
+        let path = "/tmp/immutag_tests";
+        let gpath = "/tmp/immutag_tests/Immutag";
         let mut fixture = setup_test(path, "0.1.0");
         let doc = open(gpath).unwrap();
         let doc = add_entry(
@@ -701,7 +701,7 @@ xpriv = "XPRIV"
         write(doc, gpath).expect("failed to write toml to disk");
 
         let result = {
-            let doc = open(".immutag/.immutag_tests/Immutag").unwrap();
+            let doc = open("/tmp/immutag_tests/Immutag").unwrap();
             immutag(&doc, Some("1LrTstQYNZj8wCvBgipJqL9zghsofpsHEG"), "xpriv")
         };
 
