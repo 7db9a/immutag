@@ -110,11 +110,10 @@ fn main() {
         let mut path = matches.value_of("PATH");
         if let Some(p) = path {
             let mut path = local_files::directorate(p.to_string());
-            path = path + "Immutag/";
             local_files::immutag_file_init(path, "0.1.0".to_string());
             println!("Initialized immutag in {}.", p);
         } else {
-            local_files::immutag_file_init("Immutag/", "0.1.0");
+            local_files::immutag_file_init("", "0.1.0");
             println!("Initialized immutag in the current directory.")
 
         }
@@ -232,7 +231,7 @@ mod tests {
 
         path_cache.switch_back();
 
-        let immutag_file_content = read_to_string("/tmp/immutag_tests/Immutag/Immutag").unwrap();
+        let immutag_file_content = read_to_string("/tmp/immutag_tests/.immutag/Immutag").unwrap();
 
         fixture.teardown(true);
 
@@ -275,9 +274,9 @@ mod tests {
 
         //path_cache.switch_back();
 
-        let immutag_file_content = read_to_string("/tmp/immutag_tests/here/Immutag/Immutag").unwrap();
+        let immutag_file_content = read_to_string("/tmp/immutag_tests/here/.immutag/Immutag").unwrap();
 
-        fixture.teardown(false);
+        fixture.teardown(true);
 
         assert_eq!(
             &immutag_file_content,

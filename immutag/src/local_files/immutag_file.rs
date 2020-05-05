@@ -6,14 +6,16 @@ pub use immutag_local_files::{ErrorKind, ImmutagFileError, ImmutagFileState};
 
 /// Creates a Immutag file with basic info.
 pub fn init<T: AsRef<str>>(path: T, version: T) -> Result<(), ImmutagFileError> {
+    let mut path = path.as_ref().to_string();
+    path = common::directorate(path);
+    path = common::directorate(path + ".immutag");
     let fixture = Fixture::new()
-        .add_dirpath(path.as_ref().to_string())
+        .add_dirpath(path.clone())
         .build();
 
-    let gpath = common::directorate(path.as_ref().to_string())+ "Immutag";
+    let gpath = common::filefy(path + "/Immutag");
 
     let doc = immutag_local_files::init(gpath.as_ref(), version.as_ref());
-    immutag_local_files::init(gpath.as_ref(), version.as_ref());
 
     immutag_local_files::write(doc?, gpath)
 }
@@ -23,7 +25,15 @@ pub fn add_filesystem<T: AsRef<str>>(
     bitcoin_addr: T,
     xpriv: T
 ) -> Result<(), ImmutagFileError> {
-    let gpath = common::directorate(path.as_ref().to_string())+ "Immutag";
+    let mut path = path.as_ref().to_string();
+    path = common::directorate(path);
+    path = common::directorate(path + ".immutag");
+    let fixture = Fixture::new()
+        .add_dirpath(path.clone())
+        .build();
+
+    let gpath = common::filefy(path + "/Immutag");
+
     let doc = open(gpath.clone()).unwrap();
     let doc = add_entry(
         &doc,
@@ -35,7 +45,7 @@ pub fn add_filesystem<T: AsRef<str>>(
     write(doc?, gpath)
 }
 
-pub fn open<T: AsRef<str>>(path: T) -> Result<Document, ImmutagFileError> {
+fn open<T: AsRef<str>>(path: T) -> Result<Document, ImmutagFileError> {
     immutag_local_files::open(path)
 }
 
@@ -53,7 +63,14 @@ pub fn get_xpriv<T: AsRef<str>>(
     path: T,
     bitcoin_addr: T,
 ) -> Result<String, ImmutagFileError> {
-    let gpath = common::directorate(path.as_ref().to_string())+ "Immutag";
+    let mut path = path.as_ref().to_string();
+    path = common::directorate(path);
+    path = common::directorate(path + ".immutag");
+    let fixture = Fixture::new()
+        .add_dirpath(path.clone())
+        .build();
+
+    let gpath = common::filefy(path + "/Immutag");
     let doc = open(gpath.clone()).unwrap();
 
     immutag_local_files::immutag(&doc, Some(bitcoin_addr.as_ref()), "xpriv")
@@ -63,7 +80,14 @@ pub fn get_mnemonic<T: AsRef<str>>(
     path: T,
     bitcoin_addr: T,
 ) -> Result<String, ImmutagFileError> {
-    let gpath = common::directorate(path.as_ref().to_string())+ "Immutag";
+    let mut path = path.as_ref().to_string();
+    path = common::directorate(path);
+    path = common::directorate(path + ".immutag");
+    let fixture = Fixture::new()
+        .add_dirpath(path.clone())
+        .build();
+
+    let gpath = common::filefy(path + "/Immutag");
     let doc = open(gpath.clone()).unwrap();
 
     immutag_local_files::immutag(&doc, Some(bitcoin_addr.as_ref()), "mnemonic")
@@ -125,7 +149,7 @@ mod integration {
     #[test]
     fn immutagfile_init() {
         let path = "/tmp/immutag_tests";
-        let gpath = "/tmp/immutag_tests/Immutag";
+        let gpath = "/tmp/immutag_tests/.immutag/Immutag";
 
         init(path, "0.1.0");
 
@@ -164,7 +188,6 @@ version = "0.1.0"
     #[test]
     fn immutagfile_error_add_entry() {
         let path = "/tmp/immutag_tests";
-        let gpath = "/tmp/immutag_tests/Immutag";
         init(path, "0.1.0");
         add_filesystem(
             path,
@@ -193,7 +216,7 @@ version = "0.1.0"
     #[test]
     fn format_immutagfile_file_add_entry() {
         let path = "/tmp/immutag_tests";
-        let gpath = "/tmp/immutag_tests/Immutag";
+        let gpath = "/tmp/immutag_tests/.immutag/Immutag";
 
         init(path, "0.1.0");
 
@@ -222,7 +245,7 @@ xpriv = "XPRIV"
 
         Fixture::new()
             .add_dirpath(path.to_string())
-            .teardown(true);
+            .teardown(false);
 
         assert_eq!(doc.to_string(), expected);
         assert_eq!(toml_string, expected);
@@ -231,7 +254,7 @@ xpriv = "XPRIV"
     #[test]
     fn immutagfile_entry_exists() {
         let path = "/tmp/immutag_tests";
-        let gpath = "/tmp/immutag_tests/Immutag";
+        let gpath = "/tmp/immutag_tests/.immutag/Immutag";
         init(path, "0.1.0");
         add_filesystem(
             path,
@@ -256,7 +279,7 @@ xpriv = "XPRIV"
 
     fn helper_immutagfile_delete_entry_thorough_check<T: AsRef<str>>(path_to_dir: T) {
         let path = "/tmp/immutag_tests";
-        let gpath = "/tmp/immutag_tests/Immutag";
+        let gpath = "/tmp/immutag_tests/.immutag/Immutag";
         init(path, "0.1.0");
         add_filesystem(
             path,
@@ -298,7 +321,7 @@ xpriv = "XPRIV"
     #[test]
     fn immutagfile_delete_file_entry() {
         let path = "/tmp/immutag_tests";
-        let gpath = "/tmp/immutag_tests/Immutag";
+        let gpath = "/tmp/immutag_tests/.immutag/Immutag";
         init(path, "0.1.0");
         add_filesystem(
             path,
@@ -318,7 +341,7 @@ xpriv = "XPRIV"
         write(doc, gpath).expect("failed to write toml to disk");
 
         let result = {
-            let doc = open("/tmp/immutag_tests/Immutag").unwrap();
+            let doc = open("/tmp/immutag_tests/.immutag/Immutag").unwrap();
 
             get_xpriv(path, "1LrTstQYNZj8wCvBgipJqL9zghsofpsHEG")
         };
