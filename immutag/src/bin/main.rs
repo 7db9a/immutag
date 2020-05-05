@@ -135,6 +135,10 @@ fn main() {
                     if let Some(p) = path {
                         println!("ledger-addr :{}\nxpriv: {}", l, x);
                         local_files::add_filesystem(p, l, x);
+                    } else {
+                        let current_path = "";
+                        println!("ledger-addr :{}\nxpriv: {}", l, x);
+                        local_files::add_filesystem(current_path, l, x);
                     }
                 }
             } else {
@@ -305,7 +309,7 @@ mod tests {
 
         let mut test_path_string = local_files::directorate(test_path_string.clone());
         let mut fixture = Fixture::new()
-           .add_dirpath(test_path_string)
+           .add_dirpath(test_path_string.clone())
            .build();
 
         let mut path_cache = command_assistors::PathCache::new(&test_path);
@@ -313,28 +317,27 @@ mod tests {
         // Changing directories.
         path_cache.switch();
 
-        let output = Command::new("/immutag/target/debug/immutag")
+        let output_init = Command::new("/immutag/target/debug/immutag")
             .arg("init")
             .output()
             .expect("failed to execute immutag init process");
 
-        path_cache.switch_back();
-
-        // Changing directories.
-        path_cache.switch();
-
-        let output = Command::new("/immutag/target/debug/immutag")
+        let output_filesys_import = Command::new("/immutag/target/debug/immutag")
             .arg("filesys")
             .arg("import")
             .arg("1LrTstQYNZj8wCvBgipJqL9zghsofpsHEG")
             .arg("XPRIV")
-            .arg("PATH")
             .output()
             .expect("failed to execute immutag addfilesys process");
 
         path_cache.switch_back();
 
         let immutag_file_content = read_to_string("/tmp/immutag_tests/.immutag/Immutag").unwrap();
+
+        let xpriv = local_files::get_xpriv(
+            test_path_string,
+            "1LrTstQYNZj8wCvBgipJqL9zghsofpsHEG".to_string()
+        );
 
         fixture.teardown(true);
 
@@ -343,10 +346,12 @@ mod tests {
             "[\'immutag\']\nversion = \"0.1.0\"\n"
         );
 
-        assert_eq!(
-            String::from_utf8_lossy(&output.stdout),
-            "ledger-addr :1LrTstQYNZj8wCvBgipJqL9zghsofpsHEG\nxpriv: XPRIV\n"
-        );
+        //assert_eq!(
+        //    String::from_utf8_lossy(&output_filesys_import.stdout),
+        //    "ledger-addr :1LrTstQYNZj8wCvBgipJqL9zghsofpsHEG\nxpriv: XPRIV\n"
+        //);
+
+        assert_eq!(xpriv.unwrap(), "XPRIV");
     }
 
     #[test]
