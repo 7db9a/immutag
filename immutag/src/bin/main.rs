@@ -29,6 +29,11 @@ fn main() {
                            Arg::with_name("MASTER-XPRIV")
                                .required(true)
                                .index(2)
+                       )
+                       .arg(
+                           Arg::with_name("PATH")
+                               .required(true)
+                               .index(3)
                        ),
                 )
         )
@@ -123,10 +128,14 @@ fn main() {
         if let Some(matches) = matches.subcommand_matches("import") {
             let ledger_addr = matches.value_of("LEDGER-ADDR");
             let xpriv = matches.value_of("MASTER-XPRIV");
+            let path = matches.value_of("PATH");
 
             if let Some(l) = ledger_addr {
                 if let Some(x) = xpriv {
-                    println!("ledger-addr :{}\nxpriv: {}", l, x);
+                    if let Some(p) = path {
+                        println!("ledger-addr :{}\nxpriv: {}", l, x);
+                        local_files::add_filesystem(p, l, x);
+                    }
                 }
             } else {
                 println!("filesys command fail")
@@ -291,17 +300,52 @@ mod tests {
 
     #[test]
     fn cli_output_importfilesys() {
+        let test_path = std::path::Path::new("/tmp/immutag_tests");
+        let mut test_path_string = test_path.to_str().unwrap().to_string();
+
+        let mut test_path_string = local_files::directorate(test_path_string.clone());
+        let mut fixture = Fixture::new()
+           .add_dirpath(test_path_string)
+           .build();
+
+        let mut path_cache = command_assistors::PathCache::new(&test_path);
+
+        // Changing directories.
+        path_cache.switch();
+
+        let output = Command::new("/immutag/target/debug/immutag")
+            .arg("init")
+            .output()
+            .expect("failed to execute immutag init process");
+
+        path_cache.switch_back();
+
+        // Changing directories.
+        path_cache.switch();
+
         let output = Command::new("/immutag/target/debug/immutag")
             .arg("filesys")
             .arg("import")
-            .arg("LEDGER-ADDR")
+            .arg("1LrTstQYNZj8wCvBgipJqL9zghsofpsHEG")
             .arg("XPRIV")
+            .arg("PATH")
             .output()
             .expect("failed to execute immutag addfilesys process");
 
+        path_cache.switch_back();
+
+        let immutag_file_content = read_to_string("/tmp/immutag_tests/.immutag/Immutag").unwrap();
+
+        fixture.teardown(true);
+
+        assert_eq!(
+            &immutag_file_content,
+            "[\'immutag\']\nversion = \"0.1.0\"\n"
+        );
+
         assert_eq!(
             String::from_utf8_lossy(&output.stdout),
-            "ledger-addr :LEDGER-ADDR\nxpriv: XPRIV\n"
+            "ledger-addr :1LrTstQYNZj8wCvBgipJqL9zghsofpsHEG\nxpriv: XPRIV\n"
         );
     }
 
