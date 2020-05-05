@@ -124,8 +124,8 @@ mod integration {
 
     #[test]
     fn immutagfile_init() {
-        let path = ".immutag/.immutag_tests";
-        let gpath = ".immutag/.immutag_tests/Immutag";
+        let path = "/tmp/immutag_tests";
+        let gpath = "/tmp/immutag_tests/Immutag";
 
         init(path, "0.1.0");
 
@@ -145,7 +145,7 @@ version = "0.1.0"
 
     #[test]
     fn immutagfile_add_filesystem() {
-        let path = ".immutag/.immutag_tests";
+        let path = "/tmp/immutag_tests";
         init(path, "0.1.0");
         add_filesystem(
             path,
@@ -163,8 +163,8 @@ version = "0.1.0"
 
     #[test]
     fn immutagfile_error_add_entry() {
-        let path = ".immutag/.immutag_tests";
-        let gpath = ".immutag/.immutag_tests/Immutag";
+        let path = "/tmp/immutag_tests";
+        let gpath = "/tmp/immutag_tests/Immutag";
         init(path, "0.1.0");
         add_filesystem(
             path,
@@ -192,8 +192,8 @@ version = "0.1.0"
     // Verifies there is no unexpected whitespace or formatting issuees for a basic case.
     #[test]
     fn format_immutagfile_file_add_entry() {
-        let path = ".immutag/.immutag_tests";
-        let gpath = ".immutag/.immutag_tests/Immutag";
+        let path = "/tmp/immutag_tests";
+        let gpath = "/tmp/immutag_tests/Immutag";
 
         init(path, "0.1.0");
 
@@ -230,8 +230,8 @@ xpriv = "XPRIV"
 
     #[test]
     fn immutagfile_entry_exists() {
-        let path = ".immutag/.immutag_tests";
-        let gpath = ".immutag/.immutag_tests/Immutag";
+        let path = "/tmp/immutag_tests";
+        let gpath = "/tmp/immutag_tests/Immutag";
         init(path, "0.1.0");
         add_filesystem(
             path,
@@ -255,8 +255,8 @@ xpriv = "XPRIV"
     }
 
     fn helper_immutagfile_delete_entry_thorough_check<T: AsRef<str>>(path_to_dir: T) {
-        let path = ".immutag/.immutag_tests";
-        let gpath = ".immutag/.immutag_tests/Immutag";
+        let path = "/tmp/immutag_tests";
+        let gpath = "/tmp/immutag_tests/Immutag";
         init(path, "0.1.0");
         add_filesystem(
             path,
@@ -288,7 +288,7 @@ xpriv = "XPRIV"
 
      #[test]
      fn immutagfile_delete_entry_thorough_assert() {
-         let path = ".immutag/.immutag_tests";
+         let path = "/tmp/immutag_tests";
          helper_immutagfile_delete_entry_thorough_check(path);
 
          Fixture::new().add_dirpath(path.to_string()).teardown(true);
@@ -297,8 +297,8 @@ xpriv = "XPRIV"
 
     #[test]
     fn immutagfile_delete_file_entry() {
-        let path = ".immutag/.immutag_tests";
-        let gpath = ".immutag/.immutag_tests/Immutag";
+        let path = "/tmp/immutag_tests";
+        let gpath = "/tmp/immutag_tests/Immutag";
         init(path, "0.1.0");
         add_filesystem(
             path,
@@ -318,7 +318,7 @@ xpriv = "XPRIV"
         write(doc, gpath).expect("failed to write toml to disk");
 
         let result = {
-            let doc = open(".immutag/.immutag_tests/Immutag").unwrap();
+            let doc = open("/tmp/immutag_tests/Immutag").unwrap();
 
             get_xpriv(path, "1LrTstQYNZj8wCvBgipJqL9zghsofpsHEG")
         };
