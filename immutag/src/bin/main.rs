@@ -272,7 +272,7 @@ mod tests {
             .output()
             .expect("failed to execute immutag init process");
 
-        //path_cache.switch_back();
+        path_cache.switch_back();
 
         let immutag_file_content = read_to_string("/tmp/immutag_tests/here/.immutag/Immutag").unwrap();
 
@@ -290,7 +290,7 @@ mod tests {
     }
 
     #[test]
-    fn cli_importfilesys() {
+    fn cli_output_importfilesys() {
         let output = Command::new("/immutag/target/debug/immutag")
             .arg("filesys")
             .arg("import")
@@ -306,7 +306,7 @@ mod tests {
     }
 
     #[test]
-    fn cli_addfile() {
+    fn cli_output_addfile() {
         let output_no_option = Command::new("/immutag/target/debug/immutag")
             .arg("file")
             .arg("add")
@@ -350,7 +350,7 @@ mod tests {
     }
 
     #[test]
-    fn cli_addtag() {
+    fn cli_output_addtag() {
         let output = Command::new("/immutag/target/debug/immutag")
             .arg("file")
             .arg("add")
