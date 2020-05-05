@@ -22,7 +22,7 @@ The following applications and technologies may prove useful:
 
 * ipfs - immutable content-addresable files
 
-* bitcoin - mutable file hierarchy and ledger
+* bitcoin - immutable file hierarchy and ledger
 
 * git - collaborative file editing
 
@@ -146,7 +146,7 @@ The cache can also be leveraged for file watchers or filesystem hooks (where sup
 
 ### Version store
 
-$ cat .immutag/1LrTstQYNZj8wCvBgipJqL9zghsofpsHEG/$file-main-addr/versions-file
+$ cat .immutag/1LrTstQYNZj8wCvBgipJqL9zghsofpsHEG/version-store/$file-main-addr/versions-file
 
 ```
 # file-hash: file-addr
@@ -171,7 +171,7 @@ This helps with identifying modified files, along with file hashes, when using `
 
 The metadata layer is seperate to avoid vendor-lock. Here we use recfile format, but some alternative can be used.
 
-$ cat .immutag/1LrTstQYNZj8wCvBgipJqL9zghsofpsHEG/$file-main-addr/metadata-file
+$ cat .immutag/1LrTstQYNZj8wCvBgipJqL9zghsofpsHEG/version-store/$file-main-addr/metadata-file
 
 ```
 # _*_ mode: rec _*_
@@ -207,7 +207,7 @@ Each version bticoin address is a child address of a Bitcoin hierarchical determ
 
 The `.immutag` directory is under automatic and atomic version control. The user doesn't need to manually commit anything. Other vcs can be dropped into git's place.
 
-Users who which to collaborate on editing immutag files can do so with git. In fact, an entire git repo can be an immutag file be compressing (tar) the git directory. That way collaboraters have a global address to their projects, which point to the preferred hosts, such as Github, Gitlab, or any other alternative.
+Users who which to collaborate on editing immutag files can do so with git. In fact, an entire git repo can be an immutag file by compressing (tar) the git directory. That way collaboraters have a global address to their projects, which point to the preferred hosts, such as Github, Gitlab, or any other alternative.
 
 
 ### File branching
