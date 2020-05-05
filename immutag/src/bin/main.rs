@@ -32,7 +32,6 @@ fn main() {
                        )
                        .arg(
                            Arg::with_name("PATH")
-                               .required(true)
                                .index(3)
                        ),
                 )
@@ -343,7 +342,7 @@ mod tests {
 
         assert_eq!(
             &immutag_file_content,
-            "[\'immutag\']\nversion = \"0.1.0\"\n"
+            "[\'immutag\']\nversion = \"0.1.0\"\n\n[\'1LrTstQYNZj8wCvBgipJqL9zghsofpsHEG\']\nxpriv = \"XPRIV\"\n"
         );
 
         //assert_eq!(
