@@ -293,9 +293,13 @@ mod tests {
 
     #[test]
     fn directorcate_test() {
+        let current_dir = directorate("".to_string());
+
         let good_dir = directorate("/a/dir/".to_string());
         let bad_dir = directorate("a/dir/with/bad/form".to_string());
         let ugly_dir = directorate("dir".to_string());
+
+        assert_eq!("", &current_dir);
 
         assert_eq!("/a/dir/", &good_dir);
         assert_eq!("a/dir/with/bad/form/", &bad_dir);
