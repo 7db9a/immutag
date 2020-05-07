@@ -16,8 +16,8 @@ fn path_versionstore<T: AsRef<str>>(filesys_path: T) -> String {
 }
 
 fn path_metadata<T: AsRef<str>>(filesys_path: T) -> String {
-    let path = fixture::directorate(filesys_path.as_ref().to_string());
-    let path = fixture::directorate(filesys_path.as_ref().to_string() + "metadata");
+    let path = fixture::filefy(filesys_path.as_ref().to_string());
+    let path = fixture::filefy(filesys_path.as_ref().to_string() + "metadata");
 
     path
 }
@@ -34,10 +34,11 @@ fn mkdir_metadata<T: AsRef<str>>(path: T) {
        .build();
 }
 
-fn mkdir_filesys<T: AsRef<str>>(filesys_path: T, versionstore_path: T) {
+fn mkdir_filesys<T: AsRef<str>>(filesys_path: T, versionstore_path: T, metadata_path: T) {
     let mut fixture = Fixture::new()
        .add_dirpath(filesys_path.as_ref().to_string())
        .add_dirpath(versionstore_path.as_ref().to_string())
+       .add_file(metadata_path.as_ref().to_string())
        .build();
 }
 
@@ -45,7 +46,8 @@ fn mkdir_filesys<T: AsRef<str>>(filesys_path: T, versionstore_path: T) {
 pub fn add_filesys<T: AsRef<str>>(immutag_file_path: T, bitcoin_addr: T) {
     let filesys_path = path_filesys(immutag_file_path, bitcoin_addr);
     let versionstore_path = path_versionstore(filesys_path.clone());
-    mkdir_filesys(filesys_path, versionstore_path);
+    let metadata_path = path_metadata(filesys_path.clone());
+    mkdir_filesys(filesys_path, versionstore_path, metadata_path);
 }
 
 #[cfg(test)]
@@ -78,7 +80,7 @@ mod tests {
 
         assert_eq!(
             path,
-            "/tmp/immutag_test/.immutag/1LrTstQYNZj8wCvBgipJqL9zghsofpsHEG/metadata/".to_string()
+            "/tmp/immutag_test/.immutag/1LrTstQYNZj8wCvBgipJqL9zghsofpsHEG/metadata".to_string()
         );
     }
 }
@@ -91,13 +93,16 @@ mod integration {
     #[test]
     fn add_filesys() {
         super::add_filesys("/tmp/immutag_test/.immutag", "1LrTstQYNZj8wCvBgipJqL9zghsofpsHEG");
-        let filesys_path = "/tmp/immutag_test/.immutag/1LrTstQYNZj8wCvBgipJqL9zghsofpsHEG/";
+        let filesys_path = "/tmp/immutag_test/.immutag/1LrTstQYNZj8wCvBgipJqL9zghsofpsHEG";
         let versionstore_path = "/tmp/immutag_test/.immutag/1LrTstQYNZj8wCvBgipJqL9zghsofpsHEG/version-store";
+        let metadata_path = "/tmp/immutag_test/.immutag/1LrTstQYNZj8wCvBgipJqL9zghsofpsHEG/metadata";
         let md_filesys = metadata(filesys_path).unwrap();
         let md_versionstore = metadata(versionstore_path).unwrap();
+        let md_metadata = metadata(metadata_path).unwrap();
 
         assert_eq!(true, md_filesys.is_dir());
         assert_eq!(true, md_versionstore.is_dir());
+        assert_eq!(true, md_metadata.is_dir());
 
         super::Fixture::new()
            .add_dirpath("/tmp/immutag_test/".to_string())
