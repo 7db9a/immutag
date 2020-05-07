@@ -3,21 +3,16 @@ pub use common::{Fixture, directorate, command_assistors};
 pub use immutag_local_files::{ErrorKind, ImmutagFileError, ImmutagFileState};
 
 // get_nickname
+//
+//
+//
 
 /// Creates a Immutag file with basic info.
 pub fn init<T: AsRef<str>>(path: T, version: T) -> Result<(), ImmutagFileError> {
-    let mut path = path.as_ref().to_string();
-    path = common::directorate(path);
-    path = common::directorate(path + ".immutag");
-    let fixture = Fixture::new()
-        .add_dirpath(path.clone())
-        .build();
+    let (filepath, _) = filemaker(path);
+    let doc = immutag_local_files::init(filepath.as_ref(), version.as_ref());
 
-    let gpath = common::filefy(path + "/Immutag");
-
-    let doc = immutag_local_files::init(gpath.as_ref(), version.as_ref());
-
-    immutag_local_files::write(doc?, gpath)
+    immutag_local_files::write(doc?, filepath)
 }
 
 pub fn add_filesystem<T: AsRef<str>>(
@@ -25,16 +20,8 @@ pub fn add_filesystem<T: AsRef<str>>(
     bitcoin_addr: T,
     xpriv: T
 ) -> Result<(), ImmutagFileError> {
-    let mut path = path.as_ref().to_string();
-    path = common::directorate(path);
-    path = common::directorate(path + ".immutag");
-    let fixture = Fixture::new()
-        .add_dirpath(path.clone())
-        .build();
-
-    let gpath = common::filefy(path + "/Immutag");
-
-    let doc = open(gpath.clone()).unwrap();
+    let (filepath, _) = filemaker(path);
+    let doc = open(filepath.clone()).unwrap();
     let doc = add_entry(
         &doc,
         Some(bitcoin_addr.as_ref()),
@@ -42,15 +29,7 @@ pub fn add_filesystem<T: AsRef<str>>(
         xpriv.as_ref(),
     );
 
-    write(doc?, gpath)
-}
-
-fn open<T: AsRef<str>>(path: T) -> Result<Document, ImmutagFileError> {
-    immutag_local_files::open(path)
-}
-
-pub fn write<T: AsRef<str>>(toml_doc: Document, path: T) -> Result<(), ImmutagFileError> {
-    immutag_local_files::write(toml_doc, path)
+    write(doc?, filepath)
 }
 
 /// Valid if the version field can be read. Should rename pass
@@ -63,15 +42,8 @@ pub fn get_xpriv<T: AsRef<str>>(
     path: T,
     bitcoin_addr: T,
 ) -> Result<String, ImmutagFileError> {
-    let mut path = path.as_ref().to_string();
-    path = common::directorate(path);
-    path = common::directorate(path + ".immutag");
-    let fixture = Fixture::new()
-        .add_dirpath(path.clone())
-        .build();
-
-    let gpath = common::filefy(path + "/Immutag");
-    let doc = open(gpath.clone()).unwrap();
+    let (filepath, _) = filemaker(path);
+    let doc = open(filepath.clone()).unwrap();
 
     immutag_local_files::immutag(&doc, Some(bitcoin_addr.as_ref()), "xpriv")
 }
@@ -80,15 +52,8 @@ pub fn get_mnemonic<T: AsRef<str>>(
     path: T,
     bitcoin_addr: T,
 ) -> Result<String, ImmutagFileError> {
-    let mut path = path.as_ref().to_string();
-    path = common::directorate(path);
-    path = common::directorate(path + ".immutag");
-    let fixture = Fixture::new()
-        .add_dirpath(path.clone())
-        .build();
-
-    let gpath = common::filefy(path + "/Immutag");
-    let doc = open(gpath.clone()).unwrap();
+    let (filepath, _) = filemaker(path);
+    let doc = open(filepath.clone()).unwrap();
 
     immutag_local_files::immutag(&doc, Some(bitcoin_addr.as_ref()), "mnemonic")
 }
@@ -141,6 +106,38 @@ pub fn delete_entry<T: AsRef<str>>(
     immutag_local_files::delete_entry(doc, file_name)
 }
 
+fn open<T: AsRef<str>>(path: T) -> Result<Document, ImmutagFileError> {
+    immutag_local_files::open(path)
+}
+
+fn write<T: AsRef<str>>(toml_doc: Document, path: T) -> Result<(), ImmutagFileError> {
+    immutag_local_files::write(toml_doc, path)
+}
+fn dirpath<T: AsRef<str>>(path: T) -> String {
+    let mut path = path.as_ref().to_string();
+    path = common::directorate(path);
+    path = common::directorate(path + ".immutag");
+
+    path
+}
+
+fn paths<T: AsRef<str>>(path: T) -> (String, String) {
+    let dirpath = dirpath(path);
+    let filepath = common::filefy(dirpath.clone() + "/Immutag");
+
+    (dirpath, filepath)
+}
+
+fn filemaker<T: AsRef<str>>(path: T) -> (String, Fixture) {
+    let (dirpath, filepath) = paths(path);
+
+    let fixture = Fixture::new()
+        .add_dirpath(dirpath.clone())
+        .build();
+
+    (filepath, fixture)
+}
+
 #[cfg(test)]
 mod integration {
     use super::*;
@@ -149,19 +146,15 @@ mod integration {
     #[test]
     fn immutagfile_init() {
         let path = "/tmp/immutag_tests";
-        let gpath = "/tmp/immutag_tests/.immutag/Immutag";
-
+        let (filepath, mut fixture) = filemaker(path);
         init(path, "0.1.0");
-
-        let doc = open(gpath).unwrap();
+        let doc = open(filepath.clone()).unwrap();
         let is_valid = is_valid(&doc);
-        let doc = open(gpath).unwrap();
+        let doc = open(filepath).unwrap();
         let expected = r#"['immutag']
 version = "0.1.0"
 "#;
-        Fixture::new()
-            .add_dirpath(path.to_string())
-            .teardown(true);
+        fixture.teardown(true);
 
         assert_eq!(is_valid, ImmutagFileState::Valid);
         assert_eq!(doc.to_string(), expected);
@@ -216,11 +209,10 @@ version = "0.1.0"
     #[test]
     fn format_immutagfile_file_add_entry() {
         let path = "/tmp/immutag_tests";
-        let gpath = "/tmp/immutag_tests/.immutag/Immutag";
-
+        let (filepath, mut fixture) = filemaker(path);
         init(path, "0.1.0");
 
-        let doc = open(gpath).unwrap();
+        let doc = open(filepath.clone()).unwrap();
 
         let doc = add_filesystem(
             path,
@@ -230,9 +222,9 @@ version = "0.1.0"
         .unwrap();
 
         // Focus of test.
-        let toml_string = read_to_string(gpath).expect("failed to read immutagfile");
+        let toml_string = read_to_string(filepath.clone()).expect("failed to read immutagfile");
 
-        let doc = open(gpath).unwrap();
+        let doc = open(filepath).unwrap();
 
         //let mut doc = toml_string.parse::<Document>().expect("failed to get toml doc");
         //doc["1LrTstQYNZj8wCvBgipJqL9zghsofpsHEG"].as_inline_table_mut().map(|t| t.fmt());
@@ -243,9 +235,7 @@ version = "0.1.0"
 xpriv = "XPRIV"
 "#;
 
-        Fixture::new()
-            .add_dirpath(path.to_string())
-            .teardown(false);
+        fixture.teardown(true);
 
         assert_eq!(doc.to_string(), expected);
         assert_eq!(toml_string, expected);
@@ -254,7 +244,7 @@ xpriv = "XPRIV"
     #[test]
     fn immutagfile_entry_exists() {
         let path = "/tmp/immutag_tests";
-        let gpath = "/tmp/immutag_tests/.immutag/Immutag";
+        let (filepath, mut fixture) = filemaker(path);
         init(path, "0.1.0");
         add_filesystem(
             path,
@@ -262,24 +252,19 @@ xpriv = "XPRIV"
             "XPRIV",
         )
         .unwrap();
-        let doc = open(gpath).unwrap();
-
-        assert_eq!(entry_exists(&doc, "1LrTstQYNZj8wCvBgipJqL9zghsofpsHEG", None), true);
-
-        assert_eq!(exists(gpath, "1LrTstQYNZj8wCvBgipJqL9zghsofpsHEG"), true);
+        let doc = open(filepath.clone()).unwrap();
 
         assert_eq!(entry_exists(&doc, "NOT_REAL_BITCON_ADD_A", None), false);
+        assert_eq!(entry_exists(&doc, "1LrTstQYNZj8wCvBgipJqL9zghsofpsHEG", None), true);
+        assert_eq!(exists(filepath.clone(), "1LrTstQYNZj8wCvBgipJqL9zghsofpsHEG".to_string()), true);
+        assert_eq!(exists(filepath, "NOT_REAL_BITCOIN_ADD_B".to_string()), false);
 
-        assert_eq!(exists(gpath, "NOT_REAL_BITCOIN_ADD_B"), false);
-
-        Fixture::new()
-            .add_dirpath(path.to_string())
-            .teardown(true);
+        fixture.teardown(true);
     }
 
     fn helper_immutagfile_delete_entry_thorough_check<T: AsRef<str>>(path_to_dir: T) {
         let path = "/tmp/immutag_tests";
-        let gpath = "/tmp/immutag_tests/.immutag/Immutag";
+        let (filepath, _) = filemaker(path);
         init(path, "0.1.0");
         add_filesystem(
             path,
@@ -287,16 +272,16 @@ xpriv = "XPRIV"
             "XPRIV",
         )
         .unwrap();
-        let doc = open(gpath).unwrap();
+        let doc = open(filepath.clone()).unwrap();
 
         let lib_exists = entry_exists(&doc, "1LrTstQYNZj8wCvBgipJqL9zghsofpsHEG", None);
 
         let doc = add_entry(&doc, Some("1JvFXyZMC31ShnD8PSKgN1HKQ2kGQLVpCt"), "xpriv", "XPRIV").unwrap();
 
-        write(doc.clone(), gpath).expect("failed to write toml to disk");
+        write(doc.clone(), filepath.clone()).expect("failed to write toml to disk");
 
         let new_doc = delete_entry(doc, "1JvFXyZMC31ShnD8PSKgN1HKQ2kGQLVpCt").unwrap();
-        write(new_doc.clone(), gpath).expect("failed to write toml to disk");
+        write(new_doc.clone(), filepath).expect("failed to write toml to disk");
 
         let expected = r#"['immutag']
 version = "0.1.0"
@@ -321,7 +306,7 @@ xpriv = "XPRIV"
     #[test]
     fn immutagfile_delete_file_entry() {
         let path = "/tmp/immutag_tests";
-        let gpath = "/tmp/immutag_tests/.immutag/Immutag";
+        let (filepath, mut fixture) = filemaker(path);
         init(path, "0.1.0");
         add_filesystem(
             path,
@@ -329,16 +314,16 @@ xpriv = "XPRIV"
             "XPRIV",
         )
         .unwrap();
-        let doc = open(gpath).unwrap();
-        write(doc.clone(), gpath).expect("failed to write toml to disk");
+        let doc = open(filepath.clone()).unwrap();
+        write(doc.clone(), filepath.clone()).expect("failed to write toml to disk");
 
         let xpriv = get_xpriv(path, "1LrTstQYNZj8wCvBgipJqL9zghsofpsHEG").unwrap();
         assert_eq!(xpriv, "XPRIV");
 
         // Focus of test.
-        let doc = open(gpath).unwrap();
+        let doc = open(filepath.clone()).unwrap();
         let doc = delete_entry(doc.clone(), "1LrTstQYNZj8wCvBgipJqL9zghsofpsHEG").expect("failed to delete entry");
-        write(doc, gpath).expect("failed to write toml to disk");
+        write(doc, filepath).expect("failed to write toml to disk");
 
         let result = {
             let doc = open("/tmp/immutag_tests/.immutag/Immutag").unwrap();
@@ -348,8 +333,6 @@ xpriv = "XPRIV"
 
         assert_eq!(result.is_ok(), false);
 
-        Fixture::new()
-            .add_dirpath(path.to_string())
-            .teardown(true);
+        fixture.teardown(true);
     }
 }
