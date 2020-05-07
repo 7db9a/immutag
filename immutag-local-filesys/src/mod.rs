@@ -3,8 +3,10 @@ use fixture::{Fixture};
 
 fn mkdir_filesys<T: AsRef<str>>(path: T) -> String {
    let fixture = Fixture::new()
-       .add_dirpath(path.as_ref().to_string());
-        path.as_ref().to_string()
+       .add_dirpath(path.as_ref().to_string())
+       .add_dirpath(path.as_ref().to_string() + ".immutag");
+
+    path.as_ref().to_string()
        //.build();
 }
 
