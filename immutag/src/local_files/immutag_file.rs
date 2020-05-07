@@ -1,6 +1,6 @@
-use immutag_local_files::{value, Document, read_to_string};
+use immutag_local_files::immutag_file::{value, Document, read_to_string};
 pub use fixture::{Fixture, directorate, command_assistors};
-pub use immutag_local_files::{ErrorKind, ImmutagFileError, ImmutagFileState};
+pub use immutag_local_files::immutag_file::{ErrorKind, ImmutagFileError, ImmutagFileState};
 
 // get_nickname
 //
@@ -10,9 +10,9 @@ pub use immutag_local_files::{ErrorKind, ImmutagFileError, ImmutagFileState};
 /// Creates a Immutag file with basic info.
 pub fn init<T: AsRef<str>>(path: T, version: T) -> Result<(), ImmutagFileError> {
     let (filepath, _) = filemaker(path);
-    let doc = immutag_local_files::init(filepath.as_ref(), version.as_ref());
+    let doc = immutag_local_files::immutag_file::init(filepath.as_ref(), version.as_ref());
 
-    immutag_local_files::write(doc?, filepath)
+    immutag_local_files::immutag_file::write(doc?, filepath)
 }
 
 pub fn add_filesystem<T: AsRef<str>>(
@@ -35,7 +35,7 @@ pub fn add_filesystem<T: AsRef<str>>(
 /// Valid if the version field can be read. Should rename pass
 /// toml value into method, that other fields can be validated.
 pub fn is_valid(doc: &Document) -> ImmutagFileState {
-    immutag_local_files::is_valid(doc)
+    immutag_local_files::immutag_file::is_valid(doc)
 }
 
 pub fn get_xpriv<T: AsRef<str>>(
@@ -45,7 +45,7 @@ pub fn get_xpriv<T: AsRef<str>>(
     let (filepath, _) = filemaker(path);
     let doc = open(filepath.clone()).unwrap();
 
-    immutag_local_files::immutag(&doc, Some(bitcoin_addr.as_ref()), "xpriv")
+    immutag_local_files::immutag_file::immutag(&doc, Some(bitcoin_addr.as_ref()), "xpriv")
 }
 
 pub fn get_mnemonic<T: AsRef<str>>(
@@ -55,7 +55,7 @@ pub fn get_mnemonic<T: AsRef<str>>(
     let (filepath, _) = filemaker(path);
     let doc = open(filepath.clone()).unwrap();
 
-    immutag_local_files::immutag(&doc, Some(bitcoin_addr.as_ref()), "mnemonic")
+    immutag_local_files::immutag_file::immutag(&doc, Some(bitcoin_addr.as_ref()), "mnemonic")
 }
 ///! Retrieve field data from a Immutag file. For example, if the file name is provided, it will attempt to retrieve the field `immutag` nested in the `README.md` entry.
 ///!  ```ignore
@@ -68,17 +68,17 @@ fn immutag<T: AsRef<str>>(
     file_name: Option<T>,
     key: T,
 ) -> Result<String, ImmutagFileError> {
-    immutag_local_files::immutag(doc, file_name, key)
+    immutag_local_files::immutag_file::immutag(doc, file_name, key)
 }
 
 pub fn entry_exists<T: AsRef<str>>(doc: &Document, key: T, key_nested: Option<T>) -> bool {
-    immutag_local_files::entry_exists(doc, key, key_nested)
+    immutag_local_files::immutag_file::entry_exists(doc, key, key_nested)
 }
 
 /// A crude way to find if an entry exits. Doesn't work for nested etnries.
 /// `path` paramaters is the path to the Immutag file.
 pub fn exists<T: AsRef<str>>(path: T, name: T) -> bool {
-    immutag_local_files::exists(path, name)
+    immutag_local_files::immutag_file::exists(path, name)
 }
 
 pub fn insert_entry<T: AsRef<str>>(
@@ -87,7 +87,7 @@ pub fn insert_entry<T: AsRef<str>>(
     key: T,
     immutag: T,
 ) -> Result<Document, ImmutagFileError> {
-    immutag_local_files::insert_entry(doc, file_name, key, immutag)
+    immutag_local_files::immutag_file::insert_entry(doc, file_name, key, immutag)
 }
 
 pub fn add_entry<T: AsRef<str>>(
@@ -96,22 +96,22 @@ pub fn add_entry<T: AsRef<str>>(
     name: T,
     immutag: T,
 ) -> Result<Document, ImmutagFileError> {
-    immutag_local_files::add_entry(doc, file_name, name, immutag)
+    immutag_local_files::immutag_file::add_entry(doc, file_name, name, immutag)
 }
 
 pub fn delete_entry<T: AsRef<str>>(
     doc: Document,
     file_name: T,
 ) -> Result<Document, ImmutagFileError> {
-    immutag_local_files::delete_entry(doc, file_name)
+    immutag_local_files::immutag_file::delete_entry(doc, file_name)
 }
 
 fn open<T: AsRef<str>>(path: T) -> Result<Document, ImmutagFileError> {
-    immutag_local_files::open(path)
+    immutag_local_files::immutag_file::open(path)
 }
 
 fn write<T: AsRef<str>>(toml_doc: Document, path: T) -> Result<(), ImmutagFileError> {
-    immutag_local_files::write(toml_doc, path)
+    immutag_local_files::immutag_file::write(toml_doc, path)
 }
 fn dirpath<T: AsRef<str>>(path: T) -> String {
     let mut path = path.as_ref().to_string();
