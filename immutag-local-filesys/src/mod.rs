@@ -92,12 +92,16 @@ mod integration {
     fn add_filesys() {
         super::add_filesys("/tmp/immutag_test/.immutag", "1LrTstQYNZj8wCvBgipJqL9zghsofpsHEG");
         let filesys_path = "/tmp/immutag_test/.immutag/1LrTstQYNZj8wCvBgipJqL9zghsofpsHEG/";
-        let md = metadata(filesys_path).unwrap();
+        let versionstore_path = "/tmp/immutag_test/.immutag/1LrTstQYNZj8wCvBgipJqL9zghsofpsHEG/version-store";
+        let md_filesys = metadata(filesys_path).unwrap();
+        let md_versionstore = metadata(versionstore_path).unwrap();
 
-        assert_eq!(true, md.is_dir());
+        assert_eq!(true, md_filesys.is_dir());
+        assert_eq!(true, md_versionstore.is_dir());
 
         super::Fixture::new()
            .add_dirpath("/tmp/immutag_test/".to_string())
            .teardown(true);
     }
+
 }
