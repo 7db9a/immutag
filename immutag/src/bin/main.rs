@@ -3,7 +3,7 @@ extern crate clap;
 extern crate immutag;
 
 use clap::{App, Arg, SubCommand};
-use immutag::{bitcoin, local_files};
+use immutag::{bitcoin, files};
 
 
 fn main() {
@@ -113,11 +113,11 @@ fn main() {
     if let Some(matches) = matches.subcommand_matches("init") {
         let mut path = matches.value_of("PATH");
         if let Some(p) = path {
-            let mut path = local_files::directorate(p.to_string());
-            local_files::immutag_file_init(path, "0.1.0".to_string());
+            let mut path = files::directorate(p.to_string());
+            files::immutag_file_init(path, "0.1.0".to_string());
             println!("Initialized immutag in {}.", p);
         } else {
-            local_files::immutag_file_init("", "0.1.0");
+            files::immutag_file_init("", "0.1.0");
             println!("Initialized immutag in the current directory.")
 
         }
@@ -133,11 +133,11 @@ fn main() {
                 if let Some(x) = xpriv {
                     if let Some(p) = path {
                         println!("Adding filesys {}", l);
-                        local_files::add_filesystem(p, l, x);
+                        files::add_filesystem(p, l, x);
                     } else {
                         let current_path = "";
                         println!("Adding filesys {}", l);
-                        local_files::add_filesystem(current_path, l, x);
+                        files::add_filesystem(current_path, l, x);
                     }
                 }
             } else {
@@ -181,9 +181,9 @@ fn main() {
 #[cfg(test)]
 mod tests {
     use std::fs::read_to_string;
-    use super::{local_files};
-    use local_files::command_assistors;
-    use local_files::Fixture;
+    use super::{files};
+    use files::command_assistors;
+    use files::Fixture;
     use std::path::Path;
     use std::process::Command;
 
@@ -237,7 +237,7 @@ mod tests {
         let test_path = std::path::Path::new("/tmp/immutag_tests");
         let mut test_path_string = test_path.to_str().unwrap().to_string();
 
-        let mut test_path_string = local_files::directorate(test_path_string.clone());
+        let mut test_path_string = files::directorate(test_path_string.clone());
         let mut fixture = Fixture::new()
            .add_dirpath(test_path_string + "here")
            .build();
@@ -275,7 +275,7 @@ mod tests {
         let test_path = std::path::Path::new("/tmp/immutag_tests");
         let mut test_path_string = test_path.to_str().unwrap().to_string();
 
-        let mut test_path_string = local_files::directorate(test_path_string.clone());
+        let mut test_path_string = files::directorate(test_path_string.clone());
         let mut fixture = Fixture::new()
            .add_dirpath(test_path_string.clone())
            .build();
@@ -302,7 +302,7 @@ mod tests {
 
         let immutag_file_content = read_to_string("/tmp/immutag_tests/.immutag/Immutag").unwrap();
 
-        let xpriv = local_files::get_xpriv(
+        let xpriv = files::get_xpriv(
             test_path_string,
             "1LrTstQYNZj8wCvBgipJqL9zghsofpsHEG".to_string()
         );

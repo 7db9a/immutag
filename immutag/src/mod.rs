@@ -1,2 +1,2 @@
 pub mod bitcoin;
-pub mod local_files;
+pub mod files;

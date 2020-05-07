@@ -1,11 +1,11 @@
 [package]
-name = "immutag-local-files"
+name = "immutag-file"
 version = "0.1.0"
 authors = ["7db9a"]
 edition = "2018"
 
 [lib]
-name = "immutag_local_files"
+name = "immutag_file"
 path = "src/mod.rs"
 
 [dependencies]
