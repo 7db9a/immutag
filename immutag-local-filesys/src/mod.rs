@@ -34,13 +34,14 @@ mod tests {
 #[cfg(test)]
 mod integration {
     use std::path::Path;
+    use std::fs::metadata;
 
     #[test]
     fn add_filesys() {
         super::add_filesys("/tmp/immutag_test/.immutag", "1LrTstQYNZj8wCvBgipJqL9zghsofpsHEG");
+        let path = "/tmp/immutag_test/.immutag/1LrTstQYNZj8wCvBgipJqL9zghsofpsHEG/";
+        let md = metadata(path).unwrap();
 
-        assert_eq!(
-           Path::new("/tmp/immutag_test/.immutag/1LrTstQYNZj8wCvBgipJqL9zghsofpsHEG/").exists()
-           , false);
+        assert_eq!(true, md.is_dir());
     }
 }
