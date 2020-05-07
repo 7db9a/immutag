@@ -9,6 +9,7 @@ name = "immutag_local_files"
 path = "src/mod.rs"
 
 [dependencies]
+fixture = { path = "../fixture" }
 clap = "~2.33.0"
 failure = "0.1.5"
 toml = "0.5"

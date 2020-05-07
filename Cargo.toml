@@ -3,5 +3,6 @@
 members = [
     "immutag",
     "immutag-bitcoin",
-    "immutag-local-files"
+    "immutag-local-files",
+    "fixture"
 ]

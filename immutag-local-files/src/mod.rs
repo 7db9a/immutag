@@ -6,7 +6,7 @@ extern crate toml_edit;
 pub use toml_edit::{value, Document};
 
 pub mod err;
-pub mod common;
+use fixture;
 use err::Error;
 pub use err::{ErrorKind, ImmutagFileError};
 
@@ -460,7 +460,7 @@ xpriv = "XPRIV"
 #[cfg(test)]
 mod integration {
     use super::*;
-    use common::Fixture;
+    use fixture::Fixture;
 
     pub fn setup_test<T: AsRef<str>>(
         path: T,

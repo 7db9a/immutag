@@ -1,5 +1,5 @@
-use immutag_local_files::{value, Document, common, read_to_string};
-pub use common::{Fixture, directorate, command_assistors};
+use immutag_local_files::{value, Document, read_to_string};
+pub use fixture::{Fixture, directorate, command_assistors};
 pub use immutag_local_files::{ErrorKind, ImmutagFileError, ImmutagFileState};
 
 // get_nickname
@@ -115,15 +115,15 @@ fn write<T: AsRef<str>>(toml_doc: Document, path: T) -> Result<(), ImmutagFileEr
 }
 fn dirpath<T: AsRef<str>>(path: T) -> String {
     let mut path = path.as_ref().to_string();
-    path = common::directorate(path);
-    path = common::directorate(path + ".immutag");
+    path = fixture::directorate(path);
+    path = fixture::directorate(path + ".immutag");
 
     path
 }
 
 fn paths<T: AsRef<str>>(path: T) -> (String, String) {
     let dirpath = dirpath(path);
-    let filepath = common::filefy(dirpath.clone() + "/Immutag");
+    let filepath = fixture::filefy(dirpath.clone() + "/Immutag");
 
     (dirpath, filepath)
 }
@@ -141,7 +141,7 @@ fn filemaker<T: AsRef<str>>(path: T) -> (String, Fixture) {
 #[cfg(test)]
 mod integration {
     use super::*;
-    use common::Fixture;
+    use fixture::Fixture;
 
     #[test]
     fn immutagfile_init() {

@@ -15,5 +15,6 @@ path = "src/mod.rs"
 
 [dependencies]
 clap = "~2.33.0"
+fixture = { path = "../fixture" }
 immutag-bitcoin = { path = "../immutag-bitcoin" }
 immutag-local-files = { path = "../immutag-local-files" }
