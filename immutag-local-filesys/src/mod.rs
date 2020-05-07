@@ -8,11 +8,25 @@ fn path_filesys<T: AsRef<str>>(immutag_file_path: T, bitcoin_addr: T) -> String 
     path
 }
 
+fn path_versionstore<T: AsRef<str>>(filesys_path: T) -> String {
+    let path = fixture::directorate(filesys_path.as_ref().to_string());
+    let path = fixture::directorate(filesys_path.as_ref().to_string() + "version-store");
+
+    path
+}
+
 fn mkdir_filesys<T: AsRef<str>>(path: T) {
     let mut fixture = Fixture::new()
        .add_dirpath(path.as_ref().to_string())
        .build();
 }
+
+fn mkdir_versionstore<T: AsRef<str>>(path: T) {
+    let mut fixture = Fixture::new()
+       .add_dirpath(path.as_ref().to_string())
+       .build();
+}
+
 
 fn add_filesys<T: AsRef<str>>(immutag_file_path: T, bitcoin_addr: T) {
     let path = path_filesys(immutag_file_path, bitcoin_addr);
