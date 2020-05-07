@@ -15,9 +15,22 @@ fn path_versionstore<T: AsRef<str>>(filesys_path: T) -> String {
     path
 }
 
+fn path_metadata<T: AsRef<str>>(filesys_path: T) -> String {
+    let path = fixture::directorate(filesys_path.as_ref().to_string());
+    let path = fixture::directorate(filesys_path.as_ref().to_string() + "metadata");
+
+    path
+}
+
 fn mkdir_versionstore<T: AsRef<str>>(path: T) {
     let mut fixture = Fixture::new()
        .add_dirpath(path.as_ref().to_string())
+       .build();
+}
+
+fn mkdir_metadata<T: AsRef<str>>(path: T) {
+    let mut fixture = Fixture::new()
+       .add_file(path.as_ref().to_string())
        .build();
 }
 
@@ -52,6 +65,16 @@ mod tests {
     #[test]
     fn path_versionstore() {
         let path = super::path_versionstore("/tmp/immutag_test/.immutag/1LrTstQYNZj8wCvBgipJqL9zghsofpsHEG/");
+
+        assert_eq!(
+            path,
+            "/tmp/immutag_test/.immutag/1LrTstQYNZj8wCvBgipJqL9zghsofpsHEG/version-store/".to_string()
+        );
+    }
+
+    #[test]
+    fn path_metadata() {
+        let path = super::path_metadata("/tmp/immutag_test/.immutag/1LrTstQYNZj8wCvBgipJqL9zghsofpsHEG/");
 
         assert_eq!(
             path,
