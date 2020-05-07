@@ -15,9 +15,10 @@ fn path_versionstore<T: AsRef<str>>(filesys_path: T) -> String {
     path
 }
 
-fn mkdir_filesys<T: AsRef<str>>(path: T) {
+fn mkdir_filesys<T: AsRef<str>>(filesys_path: T, versionstore_path: T) {
     let mut fixture = Fixture::new()
-       .add_dirpath(path.as_ref().to_string())
+       .add_dirpath(filesys_path.as_ref().to_string())
+       .add_dirpath(versionstore_path.as_ref().to_string())
        .build();
 }
 
@@ -29,18 +30,32 @@ fn mkdir_versionstore<T: AsRef<str>>(path: T) {
 
 
 fn add_filesys<T: AsRef<str>>(immutag_file_path: T, bitcoin_addr: T) {
-    let path = path_filesys(immutag_file_path, bitcoin_addr);
-    mkdir_filesys(path);
+    let filesys_path = path_filesys(immutag_file_path, bitcoin_addr);
+    let versionstore_path = path_versionstore(filesys_path.clone());
+    mkdir_filesys(filesys_path, versionstore_path);
 }
 
 #[cfg(test)]
 mod tests {
+
+    #[test]
     fn path_filesys() {
         let path = super::path_filesys("/tmp/immutag_test/.immutag", "1LrTstQYNZj8wCvBgipJqL9zghsofpsHEG");
 
         assert_eq!(
             path,
             "/tmp/immutag_test/.immutag/1LrTstQYNZj8wCvBgipJqL9zghsofpsHEG/".to_string()
+        );
+    }
+
+
+    #[test]
+    fn path_versionstore() {
+        let path = super::path_versionstore("/tmp/immutag_test/.immutag/1LrTstQYNZj8wCvBgipJqL9zghsofpsHEG/");
+
+        assert_eq!(
+            path,
+            "/tmp/immutag_test/.immutag/1LrTstQYNZj8wCvBgipJqL9zghsofpsHEG/version-store/".to_string()
         );
     }
 }
@@ -57,5 +72,9 @@ mod integration {
         let md = metadata(path).unwrap();
 
         assert_eq!(true, md.is_dir());
+
+        super::Fixture::new()
+           .add_dirpath(path.to_string())
+           .teardown(true);
     }
 }
