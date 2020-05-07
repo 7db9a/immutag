@@ -15,6 +15,12 @@ fn path_versionstore<T: AsRef<str>>(filesys_path: T) -> String {
     path
 }
 
+fn mkdir_versionstore<T: AsRef<str>>(path: T) {
+    let mut fixture = Fixture::new()
+       .add_dirpath(path.as_ref().to_string())
+       .build();
+}
+
 fn mkdir_filesys<T: AsRef<str>>(filesys_path: T, versionstore_path: T) {
     let mut fixture = Fixture::new()
        .add_dirpath(filesys_path.as_ref().to_string())
@@ -22,14 +28,8 @@ fn mkdir_filesys<T: AsRef<str>>(filesys_path: T, versionstore_path: T) {
        .build();
 }
 
-fn mkdir_versionstore<T: AsRef<str>>(path: T) {
-    let mut fixture = Fixture::new()
-       .add_dirpath(path.as_ref().to_string())
-       .build();
-}
 
-
-fn add_filesys<T: AsRef<str>>(immutag_file_path: T, bitcoin_addr: T) {
+pub fn add_filesys<T: AsRef<str>>(immutag_file_path: T, bitcoin_addr: T) {
     let filesys_path = path_filesys(immutag_file_path, bitcoin_addr);
     let versionstore_path = path_versionstore(filesys_path.clone());
     mkdir_filesys(filesys_path, versionstore_path);
