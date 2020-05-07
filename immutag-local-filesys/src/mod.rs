@@ -78,7 +78,7 @@ mod tests {
 
         assert_eq!(
             path,
-            "/tmp/immutag_test/.immutag/1LrTstQYNZj8wCvBgipJqL9zghsofpsHEG/version-store/".to_string()
+            "/tmp/immutag_test/.immutag/1LrTstQYNZj8wCvBgipJqL9zghsofpsHEG/metadata/".to_string()
         );
     }
 }
