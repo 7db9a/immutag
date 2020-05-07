@@ -91,13 +91,13 @@ mod integration {
     #[test]
     fn add_filesys() {
         super::add_filesys("/tmp/immutag_test/.immutag", "1LrTstQYNZj8wCvBgipJqL9zghsofpsHEG");
-        let path = "/tmp/immutag_test/.immutag/1LrTstQYNZj8wCvBgipJqL9zghsofpsHEG/";
-        let md = metadata(path).unwrap();
+        let filesys_path = "/tmp/immutag_test/.immutag/1LrTstQYNZj8wCvBgipJqL9zghsofpsHEG/";
+        let md = metadata(filesys_path).unwrap();
 
         assert_eq!(true, md.is_dir());
 
         super::Fixture::new()
-           .add_dirpath(path.to_string())
+           .add_dirpath("/tmp/immutag_test/".to_string())
            .teardown(true);
     }
 }
