@@ -1,7 +1,11 @@
 use immutag_filesys;
+use fixture;
 
-pub fn add_filesys<T: AsRef<str>>(immutag_file_path: T, bitcoin_addr: T) {
-    immutag_filesys::add_filesys(immutag_file_path, bitcoin_addr)
+pub fn add_filesys<T: AsRef<str>>(path: T, bitcoin_addr: T) {
+    let mut path = fixture::directorate(path.as_ref().to_string());
+    path = fixture::directorate(path.to_string() + ".immutag");
+
+    immutag_filesys::add_filesys(path, bitcoin_addr.as_ref().to_string())
 }
 
 #[cfg(test)]
@@ -12,7 +16,7 @@ mod integration {
 
     #[test]
     fn add_filesys() {
-        super::add_filesys("/tmp/immutag_test/.immutag", "1LrTstQYNZj8wCvBgipJqL9zghsofpsHEG");
+        super::add_filesys("/tmp/immutag_test/", "1LrTstQYNZj8wCvBgipJqL9zghsofpsHEG");
         let filesys_path = "/tmp/immutag_test/.immutag/1LrTstQYNZj8wCvBgipJqL9zghsofpsHEG";
         let versionstore_path = "/tmp/immutag_test/.immutag/1LrTstQYNZj8wCvBgipJqL9zghsofpsHEG/version-store";
         let metadata_path = "/tmp/immutag_test/.immutag/1LrTstQYNZj8wCvBgipJqL9zghsofpsHEG/metadata";
