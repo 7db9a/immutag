@@ -39,6 +39,7 @@ fn mkdir_filesys<T: AsRef<str>>(filesys_path: T, versionstore_path: T, metadata_
        .add_dirpath(filesys_path.as_ref().to_string())
        .add_dirpath(versionstore_path.as_ref().to_string())
        .add_file(metadata_path.as_ref().to_string())
+       .add_git(filesys_path.as_ref().to_string())
        .build();
 }
 
@@ -96,13 +97,16 @@ mod integration {
         let filesys_path = "/tmp/immutag_test/.immutag/1LrTstQYNZj8wCvBgipJqL9zghsofpsHEG";
         let versionstore_path = "/tmp/immutag_test/.immutag/1LrTstQYNZj8wCvBgipJqL9zghsofpsHEG/version-store";
         let metadata_path = "/tmp/immutag_test/.immutag/1LrTstQYNZj8wCvBgipJqL9zghsofpsHEG/metadata";
+        let git_path = "/tmp/immutag_test/.immutag/1LrTstQYNZj8wCvBgipJqL9zghsofpsHEG/.git";
         let md_filesys = metadata(filesys_path).unwrap();
         let md_versionstore = metadata(versionstore_path).unwrap();
         let md_metadata = metadata(metadata_path).unwrap();
+        let md_git = metadata(git_path).unwrap();
 
         assert_eq!(true, md_filesys.is_dir());
         assert_eq!(true, md_versionstore.is_dir());
         assert_eq!(true, md_metadata.is_file());
+        assert_eq!(true, md_git.is_file());
 
         super::Fixture::new()
            .add_dirpath("/tmp/immutag_test/".to_string())
