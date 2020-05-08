@@ -102,7 +102,7 @@ mod integration {
 
         assert_eq!(true, md_filesys.is_dir());
         assert_eq!(true, md_versionstore.is_dir());
-        assert_eq!(true, md_metadata.is_dir());
+        assert_eq!(true, md_metadata.is_file());
 
         super::Fixture::new()
            .add_dirpath("/tmp/immutag_test/".to_string())
