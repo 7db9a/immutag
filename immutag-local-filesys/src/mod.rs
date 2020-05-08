@@ -1,5 +1,9 @@
 use fixture::Fixture;
 
+mod verify_immutag_file {
+
+}
+
 fn path_filesys<T: AsRef<str>>(immutag_file_path: T, bitcoin_addr: T) -> String {
     let bitcoin_addr = fixture::directorate(bitcoin_addr.as_ref().to_string());
     let path = fixture::directorate(immutag_file_path.as_ref().to_string());
@@ -102,11 +106,13 @@ mod integration {
         let md_versionstore = metadata(versionstore_path).unwrap();
         let md_metadata = metadata(metadata_path).unwrap();
         let md_git = metadata(git_path).unwrap();
+        let is_git = fixture::is_git(git_path);
 
         assert_eq!(true, md_filesys.is_dir());
         assert_eq!(true, md_versionstore.is_dir());
         assert_eq!(true, md_metadata.is_file());
         assert_eq!(true, md_git.is_dir());
+        assert_eq!(false, is_git);
 
         super::Fixture::new()
            .add_dirpath("/tmp/immutag_test/".to_string())
