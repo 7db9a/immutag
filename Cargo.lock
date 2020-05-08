@@ -284,7 +284,8 @@ dependencies = [
  "clap",
  "fixture",
  "immutag-bitcoin",
- "immutag-local-files",
+ "immutag-file",
+ "immutag-filesys",
 ]
 
 [[package]]
@@ -303,7 +304,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "immutag-local-files"
+name = "immutag-file"
 version = "0.1.0"
 dependencies = [
  "clap",
@@ -316,6 +317,13 @@ dependencies = [
  "sv",
  "toml",
  "toml_edit",
+]
+
+[[package]]
+name = "immutag-filesys"
+version = "0.1.0"
+dependencies = [
+ "fixture",
 ]
 
 [[package]]

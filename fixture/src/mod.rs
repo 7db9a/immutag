@@ -125,6 +125,16 @@ impl Fixture {
     }
 }
 
+pub fn is_git<T: AsRef<str>>(path: T) -> bool {
+    let is_git = match Repository::open(Path::new(path.as_ref())) {
+            Ok(repo) => true,
+            Err(e) =>false
+    };
+
+    is_git
+}
+
+
 #[derive(PartialEq, Clone)]
 pub enum EntryType {
     File,
