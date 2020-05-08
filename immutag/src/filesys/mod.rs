@@ -29,7 +29,7 @@ mod integration {
         assert_eq!(true, md_metadata.is_file());
         assert_eq!(true, md_git.is_dir());
         assert_eq!(true, is_git);
-        assert_eq!(true, is_git_versionstore);
+        assert_eq!(false, is_git_versionstore);
 
         fixture::Fixture::new()
            .add_dirpath("/tmp/immutag_test/".to_string())
