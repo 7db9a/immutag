@@ -3,7 +3,7 @@ extern crate clap;
 extern crate immutag;
 
 use clap::{App, Arg, SubCommand};
-use immutag::{bitcoin, files};
+use immutag::{bitcoin, files, filesys};
 
 
 fn main() {
@@ -134,10 +134,12 @@ fn main() {
                     if let Some(p) = path {
                         println!("Adding filesys {}", l);
                         files::add_filesystem(p, l, x);
+                        filesys::add_filesys(p, l);
                     } else {
                         let current_path = "";
                         println!("Adding filesys {}", l);
                         files::add_filesystem(current_path, l, x);
+                        filesys::add_filesys(current_path, l);
                     }
                 }
             } else {
