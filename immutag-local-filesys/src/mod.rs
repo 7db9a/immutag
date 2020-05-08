@@ -107,12 +107,14 @@ mod integration {
         let md_metadata = metadata(metadata_path).unwrap();
         let md_git = metadata(git_path).unwrap();
         let is_git = fixture::is_git(git_path);
+        let is_git_versionstore = fixture::is_git(versionstore_path);
 
         assert_eq!(true, md_filesys.is_dir());
         assert_eq!(true, md_versionstore.is_dir());
         assert_eq!(true, md_metadata.is_file());
         assert_eq!(true, md_git.is_dir());
-        assert_eq!(false, is_git);
+        assert_eq!(true, is_git);
+        assert_eq!(true, is_git_versionstore);
 
         super::Fixture::new()
            .add_dirpath("/tmp/immutag_test/".to_string())
