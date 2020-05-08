@@ -183,7 +183,8 @@ fn main() {
 #[cfg(test)]
 mod tests {
     use std::fs::read_to_string;
-    use super::{files};
+    use std::fs::metadata;
+    use super::{files, filesys};
     use files::command_assistors;
     use files::Fixture;
     use std::path::Path;
@@ -196,7 +197,7 @@ mod tests {
         // Therefore, using the cargo command to run the
         // package binary is best.
 
-        let test_path = std::path::Path::new("/tmp/immutag_tests");
+        let test_path = std::path::Path::new("/tmp/immutag_test");
 
         let mut fixture = Fixture::new()
            .add_dirpath(test_path.to_str().unwrap().to_string())
@@ -214,7 +215,7 @@ mod tests {
 
         path_cache.switch_back();
 
-        let immutag_file_content = read_to_string("/tmp/immutag_tests/.immutag/Immutag").unwrap();
+        let immutag_file_content = read_to_string("/tmp/immutag_test/.immutag/Immutag").unwrap();
 
         fixture.teardown(true);
 
@@ -236,7 +237,7 @@ mod tests {
         // Therefore, using the cargo command to run the
         // package binary is best.
 
-        let test_path = std::path::Path::new("/tmp/immutag_tests");
+        let test_path = std::path::Path::new("/tmp/immutag_test");
         let mut test_path_string = test_path.to_str().unwrap().to_string();
 
         let mut test_path_string = files::directorate(test_path_string.clone());
@@ -257,7 +258,7 @@ mod tests {
 
         path_cache.switch_back();
 
-        let immutag_file_content = read_to_string("/tmp/immutag_tests/here/.immutag/Immutag").unwrap();
+        let immutag_file_content = read_to_string("/tmp/immutag_test/here/.immutag/Immutag").unwrap();
 
         fixture.teardown(true);
 
@@ -274,7 +275,7 @@ mod tests {
 
     #[test]
     fn cli_importfilesys() {
-        let test_path = std::path::Path::new("/tmp/immutag_tests");
+        let test_path = std::path::Path::new("/tmp/immutag_test");
         let mut test_path_string = test_path.to_str().unwrap().to_string();
 
         let mut test_path_string = files::directorate(test_path_string.clone());
@@ -302,14 +303,12 @@ mod tests {
 
         path_cache.switch_back();
 
-        let immutag_file_content = read_to_string("/tmp/immutag_tests/.immutag/Immutag").unwrap();
+        let immutag_file_content = read_to_string("/tmp/immutag_test/.immutag/Immutag").unwrap();
 
         let xpriv = files::get_xpriv(
             test_path_string,
             "1LrTstQYNZj8wCvBgipJqL9zghsofpsHEG".to_string()
         );
-
-        fixture.teardown(true);
 
         assert_eq!(
             &immutag_file_content,
@@ -322,6 +321,26 @@ mod tests {
         );
 
         assert_eq!(xpriv.unwrap(), "XPRIV");
+
+        let filesys_path = "/tmp/immutag_test/.immutag/1LrTstQYNZj8wCvBgipJqL9zghsofpsHEG";
+        let versionstore_path = "/tmp/immutag_test/.immutag/1LrTstQYNZj8wCvBgipJqL9zghsofpsHEG/version-store";
+        let metadata_path = "/tmp/immutag_test/.immutag/1LrTstQYNZj8wCvBgipJqL9zghsofpsHEG/metadata";
+        let git_path = "/tmp/immutag_test/.immutag/1LrTstQYNZj8wCvBgipJqL9zghsofpsHEG/.git";
+        let md_filesys = metadata(filesys_path).unwrap();
+        let md_versionstore = metadata(versionstore_path).unwrap();
+        let md_metadata = metadata(metadata_path).unwrap();
+        let md_git = metadata(git_path).unwrap();
+        let is_git = fixture::is_git(git_path);
+        let is_git_versionstore = fixture::is_git(versionstore_path);
+
+        assert_eq!(true, md_filesys.is_dir());
+        assert_eq!(true, md_versionstore.is_dir());
+        assert_eq!(true, md_metadata.is_file());
+        assert_eq!(true, md_git.is_dir());
+        assert_eq!(true, is_git);
+        assert_eq!(false, is_git_versionstore);
+
+        fixture.teardown(true);
     }
 
     #[test]
