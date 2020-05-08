@@ -285,6 +285,7 @@ dependencies = [
  "fixture",
  "immutag-bitcoin",
  "immutag-file",
+ "immutag-filesys",
 ]
 
 [[package]]
@@ -319,7 +320,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "immutag-local-filesys"
+name = "immutag-filesys"
 version = "0.1.0"
 dependencies = [
  "fixture",

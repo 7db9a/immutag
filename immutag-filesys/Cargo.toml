@@ -1,11 +1,11 @@
 [package]
-name = "immutag-local-filesys"
+name = "immutag-filesys"
 version = "0.1.0"
 authors = ["7db9a"]
 edition = "2018"
 
 [lib]
-name = "immutag_local_filesys"
+name = "immutag_filesys"
 path = "src/mod.rs"
 
 [dependencies]
