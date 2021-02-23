@@ -1,5 +1,7 @@
 # Immutag
 
+See github.com/immutag/immutag. This repo will be drastically refactored, moved, or deleted.
+
 Exploring a 'mutable' and taggable content-addressable file system. This is under initial development.
 
 There are several libraries for tagging files. A couple that standout are [TMSU](https://github.com/oniony/TMSU), [squaretag](https://github.com/mdom/squaretag), and [tagspaces](https://github.com/tagspaces/tagspaces). They makes it easy to find files. They are useful for keeping track of content-addressable files, such as with [ipfs](https://github.com/ipfs).
